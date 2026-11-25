@@ -1,0 +1,16 @@
+{
+  "name": "smart-campus-resource-booking-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "API server for the Smart Campus Resource Booking System",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2",
+    "mysql2": "^3.14.1"
+  }
+}
