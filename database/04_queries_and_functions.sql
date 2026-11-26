@@ -30,6 +30,14 @@ proc_label: BEGIN
     DECLARE v_booking_status VARCHAR(20);
     DECLARE v_conflict_count INT DEFAULT 0;
     DECLARE v_decision_clean VARCHAR(20);
+    DECLARE v_resource_id INT;
+    DECLARE v_locked_resource_id INT DEFAULT NULL;
+    DECLARE v_done BOOLEAN DEFAULT FALSE;
+    DECLARE resource_cursor CURSOR FOR
+        SELECT resource_id
+        FROM BOOKING_ITEM
+        WHERE booking_id = p_booking_id
+        ORDER BY resource_id;
 
     -- Error Handler for unexpected exceptions (Automatic Rollback)
     -- Must be declared before any executable statements
@@ -40,28 +48,56 @@ proc_label: BEGIN
         SET p_message = 'Transaction aborted: An unexpected database error occurred.';
     END;
 
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_done = TRUE;
+
     -- Standardize decision to lowercase
     SET v_decision_clean = LOWER(TRIM(p_decision));
 
-    -- Step 1: Validate existence and pending status
+    -- Lock the booking first, then each requested resource, in a stable order.
+    START TRANSACTION;
+
     SELECT status INTO v_booking_status 
     FROM BOOKING 
-    WHERE booking_id = p_booking_id;
+    WHERE booking_id = p_booking_id
+    FOR UPDATE;
 
     IF v_booking_status IS NULL THEN
+        ROLLBACK;
         SET p_status_code = 0;
         SET p_message = CONCAT('Error: Booking ID ', p_booking_id, ' does not exist.');
         LEAVE proc_label;
     END IF;
 
+    SET v_done = FALSE;
+    OPEN resource_cursor;
+    resource_lock_loop: LOOP
+        FETCH resource_cursor INTO v_resource_id;
+        IF v_done THEN
+            LEAVE resource_lock_loop;
+        END IF;
+
+        SET v_locked_resource_id = NULL;
+        SET v_done = FALSE;
+        SELECT resource_id INTO v_locked_resource_id
+        FROM RESOURCE
+        WHERE resource_id = v_resource_id
+        FOR UPDATE;
+
+        IF v_done THEN
+            CLOSE resource_cursor;
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Booking references a resource that does not exist';
+        END IF;
+    END LOOP;
+    CLOSE resource_cursor;
+
+    -- Validate pending status only after the relevant rows are locked.
     IF v_booking_status != 'pending' THEN
+        ROLLBACK;
         SET p_status_code = 0;
         SET p_message = CONCAT('Error: Booking ID ', p_booking_id, ' is currently ', v_booking_status, '. Only pending bookings can be processed.');
         LEAVE proc_label;
     END IF;
-
-    -- Step 2: Begin Transaction
-    START TRANSACTION;
 
     IF v_decision_clean = 'approved' THEN
         -- Check for overlapping active (confirmed / completed) booking slots
@@ -207,7 +243,7 @@ CREATE FUNCTION fn_resource_utilization(
     p_end_date DATETIME
 )
 RETURNS DECIMAL(5,2)
-DETERMINISTIC
+NOT DETERMINISTIC
 READS SQL DATA
 BEGIN
     DECLARE v_total_available_hours DECIMAL(10,2);
@@ -460,7 +496,7 @@ SELECT
             JOIN BOOKING b ON bi.booking_id = b.booking_id
             WHERE bi.resource_id = r.resource_id 
               AND b.status IN ('confirmed', 'completed')
-              AND ('2026-11-15 12:30:00' BETWEEN bi.start_time AND bi.end_time OR NOW() BETWEEN bi.start_time AND bi.end_time)
+              AND NOW() BETWEEN bi.start_time AND bi.end_time
         ) THEN 'In Use (Occupied)'
         ELSE 'Available Now'
     END AS live_operational_status,
@@ -473,7 +509,7 @@ SELECT
         JOIN DEPARTMENT d ON u.department_id = d.department_id
         WHERE bi.resource_id = r.resource_id
           AND b.status IN ('confirmed', 'completed')
-          AND ('2026-11-15 12:30:00' BETWEEN bi.start_time AND bi.end_time OR NOW() BETWEEN bi.start_time AND bi.end_time)
+          AND NOW() BETWEEN bi.start_time AND bi.end_time
         LIMIT 1
     ) AS current_occupant
 FROM RESOURCE r

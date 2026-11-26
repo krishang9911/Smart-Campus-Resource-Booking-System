@@ -1,303 +1,1728 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smart Campus Booking</title>
-<style>
-:root{
-  --ink:#16302b; --ink2:#1f423b; --paper:#f3f5f1; --card:#fff; --line:#dfe5df;
-  --text:#1c2a27; --mute:#64756f; --accent:#d9822b; --ok:#2f7d4f; --warn:#b7791f; --bad:#b83b3b;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Trebuchet MS','Segoe UI',sans-serif;background:var(--paper);color:var(--text);display:flex;min-height:100vh}
-aside{width:230px;background:var(--ink);color:#d6e3de;padding:24px 14px;position:sticky;top:0;height:100vh;flex-shrink:0}
-aside h1{font-size:1.1rem;color:#fff;padding:0 10px 22px;line-height:1.3}
-aside h1 span{color:var(--accent)}
-.nav{display:block;width:100%;text-align:left;background:none;border:0;color:inherit;font:inherit;padding:11px 12px;border-radius:6px;cursor:pointer;margin-bottom:4px}
-.nav:hover{background:var(--ink2)}
-.nav.active{background:var(--accent);color:#fff;font-weight:600}
-.nav:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-main{flex:1;padding:28px;min-width:0}
-.view{display:none}.view.active{display:block}
-h2{font-size:1.5rem;margin-bottom:4px}
-.sub{color:var(--mute);margin-bottom:22px;font-size:.92rem}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:22px}
-.stat{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px;border-left:4px solid var(--accent)}
-.stat b{display:block;font-size:1.9rem}
-.stat small{color:var(--mute)}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-.box{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:20px}
-.box h3{font-size:1.05rem;margin-bottom:14px}
-.bar{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:.88rem}
-.bar .lbl{width:110px;flex-shrink:0}
-.bar .track{flex:1;background:#eaefea;border-radius:4px;height:14px}
-.bar .fill{background:var(--ink);height:100%;border-radius:4px;min-width:2px}
-.bar .n{width:26px;text-align:right;color:var(--mute)}
-.item{padding:10px 0;border-bottom:1px solid var(--line);font-size:.9rem}
-.item:last-child{border:0}.item small{color:var(--mute);display:block}
-.empty{color:var(--mute);padding:14px 0;font-size:.9rem}
-.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-input,select,textarea,button{font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:6px;background:#fff}
-.toolbar input{flex:1;min-width:160px}
-.btn{background:var(--ink);color:#fff;border:0;cursor:pointer;font-weight:600}
-.btn:hover{background:var(--ink2)}
-.btn.sm{padding:5px 10px;font-size:.8rem}
-.btn.ok{background:var(--ok)}.btn.bad{background:var(--bad)}.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
-.tw{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:.88rem}
-th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line);white-space:nowrap}
-th{background:#eef2ee;font-weight:600}
-.badge{padding:3px 9px;border-radius:10px;font-size:.75rem;font-weight:600}
-.Available,.Approved{background:#dcefe3;color:var(--ok)}
-.Pending{background:#fbeccd;color:var(--warn)}
-.Maintenance,.Rejected,.Cancelled{background:#f5dada;color:var(--bad)}
-form label{display:block;font-weight:600;font-size:.85rem;margin:12px 0 4px;color:var(--mute)}
-form input,form textarea,form select{width:100%}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-form .btn{margin-top:18px;width:100%;padding:11px}
-#toast{position:fixed;right:20px;bottom:20px;padding:12px 18px;border-radius:6px;color:#fff;display:none;max-width:340px;font-size:.9rem;z-index:9}
-#toast.s{background:var(--ok)}#toast.e{background:var(--bad)}
-.sched{margin-top:14px;font-size:.85rem}
-@media(max-width:860px){
-  body{flex-direction:column}
-  aside{width:100%;height:auto;position:static;display:flex;flex-wrap:wrap;gap:4px;padding:12px}
-  aside h1{width:100%;padding:0 4px 8px}
-  .nav{width:auto}
-  .grid2,.row{grid-template-columns:1fr}
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Campus · Resource &amp; Telemetry Console</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface-muted: #f4f4f5;
+      --surface-subtle: #fafafa;
+      --border: #e4e4e7;
+      --border-strong: #d4d4d8;
+      --text: #09090b;
+      --text-secondary: #3f3f46;
+      --muted: #71717a;
+
+      --indigo: #4f46e5;
+      --indigo-hover: #4338ca;
+      --indigo-soft: #eef2ff;
+      --indigo-border: #c7d2fe;
+
+      --emerald-bg: #ecfdf5;
+      --emerald-border: #a7f3d0;
+      --emerald-text: #065f46;
+      --emerald-dot: #10b981;
+
+      --amber-bg: #fffbeb;
+      --amber-border: #fde68a;
+      --amber-text: #92400e;
+      --amber-dot: #f59e0b;
+
+      --rose-bg: #fff1f2;
+      --rose-border: #fecdd3;
+      --rose-text: #9f1239;
+      --rose-dot: #f43f5e;
+      --rose-solid: #e11d48;
+      --rose-solid-hover: #be123c;
+
+      --slate-bg: #f4f4f5;
+      --slate-border: #e4e4e7;
+      --slate-text: #3f3f46;
+
+      --radius-xl: 14px;
+      --radius-lg: 10px;
+      --radius-md: 8px;
+      --radius-sm: 6px;
+      --shadow-xs: 0 1px 2px rgba(9, 9, 11, 0.04);
+      --shadow-sm: 0 1px 3px rgba(9, 9, 11, 0.06), 0 1px 2px rgba(9, 9, 11, 0.03);
+      --shadow-modal: 0 20px 50px rgba(9, 9, 11, 0.16);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.78rem;
+    }
+
+    /* Sticky Header */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .topbar-inner {
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 12px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: -0.03em;
+      box-shadow: 0 2px 6px rgba(79, 70, 229, 0.25);
+    }
+    .brand-title {
+      font-size: 0.96rem;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+    .brand-sub {
+      font-size: 0.76rem;
+      color: var(--muted);
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      padding: 5px 11px;
+      border-radius: 999px;
+      background: var(--surface-subtle);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--muted);
+    }
+    .status-pill.online {
+      background: var(--emerald-bg);
+      border-color: var(--emerald-border);
+      color: var(--emerald-text);
+    }
+    .status-pill.online .dot { background: var(--emerald-dot); }
+    .status-pill.offline {
+      background: var(--rose-bg);
+      border-color: var(--rose-border);
+      color: var(--rose-text);
+    }
+    .status-pill.offline .dot { background: var(--rose-dot); }
+    .status-pill.warn {
+      background: var(--amber-bg);
+      border-color: var(--amber-border);
+      color: var(--amber-text);
+    }
+    .status-pill.warn .dot { background: var(--amber-dot); }
+
+    /* Container */
+    .shell {
+      max-width: 1380px;
+      margin: 24px auto 64px;
+      padding: 0 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    /* 1. Top KPI Strip */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 16px 18px;
+      box-shadow: var(--shadow-xs);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: border-color 0.15s;
+    }
+    .kpi-card:hover { border-color: var(--border-strong); }
+    .kpi-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .kpi-label {
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+    .kpi-tag {
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 1px 7px;
+      border-radius: 999px;
+      background: var(--surface-muted);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+    .kpi-tag.mongo {
+      background: var(--emerald-bg);
+      color: var(--emerald-text);
+      border-color: var(--emerald-border);
+    }
+    .kpi-val {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      font-variant-numeric: tabular-nums;
+      color: var(--text);
+      line-height: 1.2;
+      margin-top: 2px;
+    }
+    .kpi-sub {
+      font-size: 0.76rem;
+      color: var(--muted);
+    }
+
+    /* Main Workspace Grid */
+    .workspace {
+      display: grid;
+      grid-template-columns: 1.55fr 1fr;
+      gap: 22px;
+      align-items: start;
+    }
+    .col-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    /* Card Panels */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    .panel-head {
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      background: var(--surface);
+    }
+    .panel-head h2 {
+      font-size: 0.96rem;
+      font-weight: 650;
+      letter-spacing: -0.015em;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel-head p {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .panel-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .panel-body { padding: 18px 22px; }
+
+    /* Controls & Inputs */
+    input, select, textarea, button {
+      font: inherit;
+      font-size: 0.84rem;
+      border-radius: var(--radius-md);
+      transition: border-color 0.15s, box-shadow 0.15s, background 0.15s, color 0.15s;
+    }
+    input, select, textarea {
+      padding: 8px 11px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+    }
+    input:hover, select:hover, textarea:hover { border-color: var(--border-strong); }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--indigo);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 7px 13px;
+      border: 1px solid transparent;
+      font-weight: 600;
+      font-size: 0.82rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      white-space: nowrap;
+      border-radius: var(--radius-md);
+    }
+    .btn:disabled { opacity: 0.52; cursor: not-allowed; }
+    .btn-primary {
+      background: var(--indigo);
+      color: #fff;
+      box-shadow: 0 1px 2px rgba(79, 70, 229, 0.2);
+    }
+    .btn-primary:hover:not(:disabled) { background: var(--indigo-hover); }
+    .btn-dark { background: #18181b; color: #fff; }
+    .btn-dark:hover:not(:disabled) { background: #27272a; }
+    .btn-danger {
+      background: var(--rose-solid);
+      color: #fff;
+    }
+    .btn-danger:hover:not(:disabled) { background: var(--rose-solid-hover); }
+    .btn-ghost {
+      background: var(--surface);
+      color: var(--text-secondary);
+      border-color: var(--border);
+    }
+    .btn-ghost:hover:not(:disabled) {
+      background: var(--surface-muted);
+      color: var(--text);
+      border-color: var(--border-strong);
+    }
+    .btn-xs { padding: 5px 10px; font-size: 0.76rem; border-radius: var(--radius-sm); }
+
+    /* Toolbar & Segmented Filter Pills */
+    .toolbar {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .toolbar-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto auto;
+      gap: 8px;
+      align-items: center;
+    }
+    .segmented {
+      display: inline-flex;
+      padding: 3px;
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      gap: 2px;
+      align-self: flex-start;
+    }
+    .seg-btn {
+      padding: 4px 11px;
+      font-size: 0.77rem;
+      font-weight: 600;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .seg-btn:hover { color: var(--text); }
+    .seg-btn.active {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Tables */
+    .table-wrap {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow-x: auto;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+    th {
+      background: var(--surface-subtle);
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.71rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    td {
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: 0; }
+    tbody tr { transition: background 0.12s; }
+    tbody tr:hover td { background: #fafafa; }
+    tbody tr.selected td { background: var(--indigo-soft); }
+
+    .res-name { font-weight: 600; color: var(--text); }
+    .res-meta { font-size: 0.76rem; color: var(--muted); }
+    .code-tag {
+      display: inline-block;
+      margin-top: 2px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+    }
+
+    /* Status Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 9px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+    .badge::before {
+      content: "";
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.8;
+    }
+    .badge.ok { background: var(--emerald-bg); color: var(--emerald-text); border-color: var(--emerald-border); }
+    .badge.warn { background: var(--amber-bg); color: var(--amber-text); border-color: var(--amber-border); }
+    .badge.bad { background: var(--rose-bg); color: var(--rose-text); border-color: var(--rose-border); }
+    .badge.neutral { background: var(--slate-bg); color: var(--slate-text); border-color: var(--slate-border); }
+    .badge.indigo { background: var(--indigo-soft); color: var(--indigo); border-color: var(--indigo-border); }
+
+    /* Selected Resource Preview */
+    .preview-card {
+      background: var(--surface-subtle);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 12px 14px;
+      margin-bottom: 16px;
+    }
+    .preview-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .preview-title { font-weight: 650; font-size: 0.88rem; color: var(--text); }
+    .preview-sub { font-size: 0.78rem; color: var(--text-secondary); margin-top: 2px; }
+    .preview-desc { font-size: 0.76rem; color: var(--muted); margin-top: 6px; }
+
+    /* Form Controls */
+    .field { margin-bottom: 13px; }
+    .field label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 5px;
+    }
+    .field input, .field select, .field textarea { width: 100%; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .preset-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: -2px 0 14px;
+      flex-wrap: wrap;
+    }
+    .preset-row span { font-size: 0.75rem; color: var(--muted); margin-right: 2px; }
+    .chip {
+      padding: 3px 10px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface-subtle);
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+    .chip:hover {
+      border-color: var(--indigo);
+      color: var(--indigo);
+      background: var(--indigo-soft);
+    }
+
+    .submit-btn { width: 100%; padding: 9px 16px; font-size: 0.86rem; }
+
+    /* Inline Alert Banners */
+    .alert {
+      margin-top: 14px;
+      padding: 10px 13px;
+      border-radius: var(--radius-md);
+      font-size: 0.81rem;
+      line-height: 1.45;
+      display: none;
+    }
+    .alert.ok {
+      display: block;
+      background: var(--emerald-bg);
+      color: var(--emerald-text);
+      border: 1px solid var(--emerald-border);
+    }
+    .alert.bad {
+      display: block;
+      background: var(--rose-bg);
+      color: var(--rose-text);
+      border: 1px solid var(--rose-border);
+    }
+    .alert.warn {
+      display: block;
+      background: var(--amber-bg);
+      color: var(--amber-text);
+      border: 1px solid var(--amber-border);
+    }
+
+    /* Activity Feed */
+    .feed-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+    .feed-item {
+      padding: 9px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: var(--surface-subtle);
+      font-size: 0.8rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .feed-item.ok { border-left: 3px solid var(--emerald-dot); }
+    .feed-item.bad { border-left: 3px solid var(--rose-dot); }
+    .feed-item.info { border-left: 3px solid var(--indigo); }
+
+    /* MongoDB Maintenance & Telemetry Panel */
+    .agg-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+      align-items: center;
+    }
+    .agg-group-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin-right: 4px;
+    }
+    .agg-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      background: var(--surface-subtle);
+      color: var(--text-secondary);
+    }
+    .agg-pill strong { font-variant-numeric: tabular-nums; color: var(--text); }
+
+    .reports-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .report-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      background: var(--surface-subtle);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .report-card:hover {
+      border-color: var(--border-strong);
+      background: var(--surface);
+    }
+    .report-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .report-title {
+      font-weight: 650;
+      font-size: 0.87rem;
+      color: var(--text);
+      line-height: 1.3;
+    }
+    .report-summary {
+      font-size: 0.79rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+    .telemetry-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .t-tag {
+      padding: 2px 7px;
+      border-radius: 5px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.71rem;
+      color: var(--text-secondary);
+    }
+    .t-tag b { color: var(--indigo); font-weight: 600; }
+    .checklist-box {
+      border-top: 1px dashed var(--border);
+      padding-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .chk-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+    .chk-icon {
+      font-weight: 700;
+      flex-shrink: 0;
+      width: 14px;
+    }
+    .chk-icon.pass { color: var(--emerald-text); }
+    .chk-icon.fail { color: var(--rose-text); }
+    .report-foot {
+      margin-top: auto;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.74rem;
+      color: var(--muted);
+      gap: 8px;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(9, 9, 11, 0.45);
+      backdrop-filter: blur(4px);
+      display: none;
+      place-items: center;
+      padding: 20px;
+      z-index: 50;
+    }
+    .modal-backdrop.open { display: grid; }
+    .modal {
+      width: 100%;
+      max-width: 560px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-modal);
+      overflow: hidden;
+      max-height: 92vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-head {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-head h3 { font-size: 0.96rem; font-weight: 650; }
+    .modal-body {
+      padding: 18px 20px;
+      overflow-y: auto;
+    }
+    .modal-foot {
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+      background: var(--surface-subtle);
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 28px 16px;
+      color: var(--muted);
+      font-size: 0.83rem;
+    }
+
+    @media (max-width: 1180px) {
+      .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .reports-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 980px) {
+      .workspace { grid-template-columns: 1fr; }
+      .toolbar-row { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+      .shell, .topbar-inner { padding-left: 16px; padding-right: 16px; }
+      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .reports-grid { grid-template-columns: 1fr; }
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
-<aside>
-  <h1>Smart Campus<br><span>Resource Booking</span></h1>
-  <button class="nav active" data-view="dashboard">Dashboard</button>
-  <button class="nav" data-view="resources">Resources</button>
-  <button class="nav" data-view="book">New booking</button>
-  <button class="nav" data-view="bookings">Manage bookings</button>
-</aside>
-
-<main>
-  <!-- DASHBOARD -->
-  <section id="dashboard" class="view active">
-    <h2>Dashboard</h2>
-    <p class="sub">Campus ka aaj ka overview.</p>
-    <div class="stats" id="stats"></div>
-    <div class="grid2">
-      <div class="box"><h3>Bookings by resource type</h3><div id="chart"></div></div>
-      <div class="box"><h3>Upcoming bookings</h3><div id="upcoming"></div></div>
-    </div>
-  </section>
-
-  <!-- RESOURCES -->
-  <section id="resources" class="view">
-    <h2>Resources</h2>
-    <p class="sub">Search karo, filter lagao, aur slot check karo.</p>
-    <div class="toolbar">
-      <input id="fSearch" placeholder="Search name or building">
-      <select id="fType"><option value="">All types</option></select>
-      <select id="fStatus">
-        <option value="">All statuses</option>
-        <option value="Available">Available</option>
-        <option value="Maintenance">Maintenance</option>
-      </select>
-      <input id="fCap" type="number" min="1" placeholder="Min capacity" style="max-width:140px">
-      <button class="btn" id="fGo">Apply</button>
-    </div>
-    <div class="box tw">
-      <table>
-        <thead><tr><th>ID</th><th>Resource</th><th>Type</th><th>Building</th><th>Room</th><th>Cap.</th><th>Status</th><th></th></tr></thead>
-        <tbody id="resBody"></tbody>
-      </table>
-    </div>
-  </section>
-
-  <!-- BOOK -->
-  <section id="book" class="view">
-    <h2>New booking</h2>
-    <p class="sub">Request submit hone ke baad admin approve karega.</p>
-    <div class="grid2">
-      <div class="box">
-        <form id="bookForm">
-          <div class="row">
-            <div><label for="userId">User ID</label><input type="number" id="userId" min="1" required></div>
-            <div><label for="resourceId">Resource</label><select id="resourceId" required></select></div>
-          </div>
-          <label for="title">Booking title</label><input id="title" required placeholder="e.g. DBMS project lab work">
-          <label for="purpose">Purpose</label><textarea id="purpose" rows="2"></textarea>
-          <div class="row">
-            <div><label for="startTime">Start</label><input type="datetime-local" id="startTime" required></div>
-            <div><label for="endTime">End</label><input type="datetime-local" id="endTime" required></div>
-          </div>
-          <button class="btn" type="submit">Submit request</button>
-        </form>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-mark">SC</div>
+        <div>
+          <div class="brand-title">Smart Campus · Resource &amp; Telemetry Console</div>
+          <div class="brand-sub">ACID MySQL Scheduling &amp; MongoDB Equipment Telemetry</div>
+        </div>
       </div>
-      <div class="box"><h3>Already booked slots</h3><div id="slots" class="empty">Resource select karo.</div></div>
+      <div class="nav-right">
+        <div id="apiStatus" class="status-pill">
+          <span class="dot"></span>
+          <span id="apiStatusText">MySQL Connecting...</span>
+        </div>
+        <div id="mongoStatus" class="status-pill">
+          <span class="dot"></span>
+          <span id="mongoStatusText">MongoDB Connecting...</span>
+        </div>
+      </div>
     </div>
-  </section>
+  </header>
 
-  <!-- MANAGE -->
-  <section id="bookings" class="view">
-    <h2>Manage bookings</h2>
-    <p class="sub">Approve, reject ya cancel karo.</p>
-    <div class="toolbar">
-      <select id="bStatus">
-        <option value="">All</option><option>Pending</option><option>Approved</option><option>Rejected</option><option>Cancelled</option>
-      </select>
-      <input id="bUser" type="number" placeholder="User ID" style="max-width:140px">
-      <button class="btn" id="bGo">Apply</button>
+  <main class="shell">
+    <!-- 1. Top KPI Summary Strip -->
+    <section class="kpi-grid" aria-label="Key Metrics">
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label">Total Resources</span>
+          <span class="kpi-tag">MySQL</span>
+        </div>
+        <div class="kpi-val" id="kpiTotal">0</div>
+        <div class="kpi-sub">Registered campus assets</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label">Available Now</span>
+          <span class="kpi-tag">Ready</span>
+        </div>
+        <div class="kpi-val" id="kpiAvail">0</div>
+        <div class="kpi-sub">Open for immediate booking</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label">Under Maintenance</span>
+          <span class="kpi-tag">Alert</span>
+        </div>
+        <div class="kpi-val" id="kpiMaint">0</div>
+        <div class="kpi-sub">Assets offline for service</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label">Active Bookings</span>
+          <span class="kpi-tag">Live</span>
+        </div>
+        <div class="kpi-val" id="kpiActiveBookings">0</div>
+        <div class="kpi-sub" id="kpiActiveSub">Pending &amp; approved slots</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label">Open Maint. Reports</span>
+          <span class="kpi-tag mongo">MongoDB</span>
+        </div>
+        <div class="kpi-val" id="kpiOpenReports">0</div>
+        <div class="kpi-sub" id="kpiReportsSub">Open &amp; in-progress tickets</div>
+      </div>
+    </section>
+
+    <!-- 2. Left/Main Column (Inventory) & Right Column (Booking Form + Activity Feed) -->
+    <section class="workspace">
+      <!-- Left: Resource Inventory -->
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Resource Inventory</h2>
+            <p>Search campus labs &amp; hardware and select an asset to schedule</p>
+          </div>
+          <div class="panel-actions">
+            <button type="button" class="btn btn-ghost btn-xs" id="refreshBtn">Refresh</button>
+          </div>
+        </div>
+
+        <div class="panel-body">
+          <div class="toolbar">
+            <div class="toolbar-row">
+              <input id="searchInput" type="text" placeholder="Search resource name, code, building, or room..." />
+              <select id="typeFilter"><option value="">All Categories</option></select>
+              <button type="button" class="btn btn-dark" id="searchBtn">Search</button>
+              <button type="button" class="btn btn-ghost" id="resetFiltersBtn">Reset</button>
+            </div>
+            <div class="segmented" role="group" aria-label="Status Filter">
+              <button type="button" class="seg-btn active" data-status-filter="">All</button>
+              <button type="button" class="seg-btn" data-status-filter="available">Available</button>
+              <button type="button" class="seg-btn" data-status-filter="under_maintenance">Under Maintenance</button>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Resource</th>
+                  <th>Category</th>
+                  <th>Location</th>
+                  <th>Cap</th>
+                  <th>Status</th>
+                  <th style="text-align:right;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="resourcesBody">
+                <tr><td colspan="7" class="empty-state">Loading campus inventory...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Booking Form + Activity Feed -->
+      <div class="col-stack">
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Booking Request</h2>
+              <p>Transactional reservation via <code>sp_create_booking</code></p>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div id="resourcePreview" class="preview-card" style="display:none;"></div>
+
+            <form id="bookingForm" novalidate>
+              <div class="grid-2">
+                <div class="field">
+                  <label for="userId">User ID</label>
+                  <input type="number" id="userId" min="1" step="1" value="1" required />
+                </div>
+                <div class="field">
+                  <label for="resourceId">Selected Resource</label>
+                  <select id="resourceId" required></select>
+                </div>
+              </div>
+
+              <div class="grid-2">
+                <div class="field">
+                  <label for="startTime">Start Time</label>
+                  <input type="datetime-local" id="startTime" required />
+                </div>
+                <div class="field">
+                  <label for="endTime">End Time</label>
+                  <input type="datetime-local" id="endTime" required />
+                </div>
+              </div>
+
+              <div class="preset-row">
+                <span>Quick duration:</span>
+                <button type="button" class="chip" data-hours="1">+1 hr</button>
+                <button type="button" class="chip" data-hours="2">+2 hrs</button>
+                <button type="button" class="chip" data-hours="3">+3 hrs</button>
+              </div>
+
+              <div class="field">
+                <label for="purpose">
+                  <span>Purpose <span style="font-weight:400;color:var(--muted);">(optional)</span></span>
+                  <span class="mono" id="charCount">0 / 255</span>
+                </label>
+                <textarea id="purpose" rows="2" maxlength="255" placeholder="e.g. Distributed ML benchmark, lab session, or prototype print"></textarea>
+              </div>
+
+              <button type="submit" class="btn btn-primary submit-btn" id="submitBtn">Submit Booking Request</button>
+            </form>
+
+            <div id="formAlert" class="alert" role="alert"></div>
+          </div>
+        </div>
+
+        <!-- 5. Transaction & Audit Activity Feed -->
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Transaction &amp; Audit Feed</h2>
+              <p>Live stream of SQL &amp; NoSQL operations</p>
+            </div>
+            <button type="button" class="btn btn-ghost btn-xs" id="clearLogBtn">Clear</button>
+          </div>
+          <div class="panel-body">
+            <div id="activityLog" class="feed-list">
+              <div class="empty-state" style="padding:14px;">No transactions recorded yet in this session.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Active & Recent Bookings Table -->
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <h2>Active &amp; Recent Bookings</h2>
+          <p>Latest 25 bookings with instant ACID cancellation &amp; slot release</p>
+        </div>
+        <button type="button" class="btn btn-ghost btn-xs" id="refreshBookingsBtn">Refresh</button>
+      </div>
+      <div class="panel-body">
+        <div id="bookingsAlert" class="alert" role="alert" style="margin-top:0; margin-bottom:14px;"></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Booking ID</th>
+                <th>Resource</th>
+                <th>Booked By</th>
+                <th>Time Window</th>
+                <th>Status</th>
+                <th style="text-align:right;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="bookingsBody">
+              <tr><td colspan="6" class="empty-state">Loading active &amp; recent bookings...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. MongoDB Maintenance & Telemetry Panel -->
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <h2>Maintenance &amp; Telemetry <span class="badge indigo">MongoDB</span></h2>
+          <p>Semi-structured sensor telemetry, technician notes, and inspection checklists (<code>smart_campus_nosql.maintenance_reports</code>)</p>
+        </div>
+        <div class="panel-actions">
+          <button type="button" class="btn btn-ghost btn-xs" id="refreshReportsBtn">Refresh</button>
+          <button type="button" class="btn btn-primary btn-xs" id="openReportModalBtn">+ Log Maintenance Report</button>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <div id="reportsAlert" class="alert" role="alert" style="margin-top:0; margin-bottom:14px;"></div>
+
+        <div id="aggStrip" class="agg-strip">
+          <span class="agg-group-label">Aggregation Breakdown:</span>
+          <span class="res-meta">Loading MongoDB aggregation pipeline...</span>
+        </div>
+
+        <div id="reportsGrid" class="reports-grid">
+          <div class="empty-state" style="grid-column:1/-1;">Loading maintenance reports...</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal: Log New MongoDB Maintenance Report -->
+  <div id="reportModalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="reportModalTitle">
+    <div class="modal">
+      <div class="modal-head">
+        <h3 id="reportModalTitle">Log Equipment Maintenance Report (MongoDB)</h3>
+        <button type="button" class="btn btn-ghost btn-xs" id="closeReportModalBtn">Close</button>
+      </div>
+      <form id="reportForm">
+        <div class="modal-body">
+          <div class="grid-2">
+            <div class="field">
+              <label for="reportResourceSelect">Resource</label>
+              <select id="reportResourceSelect" required></select>
+            </div>
+            <div class="field">
+              <label for="reportTechnician">Technician Name</label>
+              <input type="text" id="reportTechnician" value="Ramesh Yadav" required />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="reportIssue">Issue Summary</label>
+            <input type="text" id="reportIssue" placeholder="e.g. Thermal sensor spike detected during inference job" required />
+          </div>
+
+          <div class="grid-2">
+            <div class="field">
+              <label for="reportSeverity">Severity</label>
+              <select id="reportSeverity" required>
+                <option value="Low">Low</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="High">High</option>
+                <option value="Critical">Critical</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="reportStatus">Status</label>
+              <select id="reportStatus" required>
+                <option value="Open" selected>Open</option>
+                <option value="In_Progress">In_Progress</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="reportTelemetry">
+              <span>Sensor Telemetry (JSON)</span>
+              <span class="mono" style="color:var(--muted);">flexible key-value metrics</span>
+            </label>
+            <textarea id="reportTelemetry" class="mono" rows="2">{"peak_temp_c": 78.4, "fan_rpm": 4200, "voltage_v": 11.95}</textarea>
+          </div>
+
+          <div class="field" style="margin-bottom:0;">
+            <label for="reportChecklist">
+              <span>Inspection Checklist (one item per line)</span>
+              <span class="mono" style="color:var(--muted);">prefix ! for failed check</span>
+            </label>
+            <textarea id="reportChecklist" rows="3">Cooling fan intake airflow check
+Thermal interface inspection
+! Firmware diagnostic self-test</textarea>
+          </div>
+
+          <div id="reportModalAlert" class="alert" role="alert"></div>
+        </div>
+        <div class="modal-foot">
+          <button type="button" class="btn btn-ghost" id="cancelReportModalBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="submitReportBtn">Save Maintenance Report</button>
+        </div>
+      </form>
     </div>
-    <div class="box tw">
-      <table>
-        <thead><tr><th>#</th><th>Title</th><th>User</th><th>Resource</th><th>Start</th><th>End</th><th>Status</th><th>Actions</th></tr></thead>
-        <tbody id="bkBody"></tbody>
-      </table>
-    </div>
-  </section>
-</main>
-<div id="toast" role="status"></div>
+  </div>
 
-<script>
-const API = 'http://localhost:3000/api';
-const $ = (id) => document.getElementById(id);
-const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const fmt = (s) => s ? s.slice(0, 16).replace('T', ' ') : '';
+  <script>
+    const API_BASE = window.location.port === '3000'
+      ? `${window.location.origin}/api`
+      : 'http://localhost:3000/api';
 
-async function api(path, opts) {
-  const r = await fetch(API + path, opts);
-  const j = await r.json();
-  if (!r.ok || !j.success) throw new Error(j.error || 'Request failed');
-  return j;
-}
-let tt;
-function toast(msg, type = 's') {
-  const t = $('toast'); t.textContent = msg; t.className = type; t.style.display = 'block';
-  clearTimeout(tt); tt = setTimeout(() => t.style.display = 'none', 3500);
-}
+    const $ = (id) => document.getElementById(id);
 
-// ---- navigation ----
-function show(view) {
-  document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === view));
-  document.querySelectorAll('.nav').forEach(n => n.classList.toggle('active', n.dataset.view === view));
-  ({ dashboard: loadDashboard, resources: loadResources, book: loadBookForm, bookings: loadBookings })[view]();
-}
-document.querySelectorAll('.nav').forEach(n => n.onclick = () => show(n.dataset.view));
+    let allResources = [];
+    let allBookings = [];
+    let allReports = [];
+    let reportBreakdown = { by_severity: [], by_status: [] };
+    let selectedResourceId = null;
+    let statusFilterValue = '';
+    const logs = [];
 
-// ---- dashboard ----
-async function loadDashboard() {
-  try {
-    const { data: d } = await api('/dashboard');
-    const cards = [
-      ['Total resources', d.resources.total], ['Available now', d.resources.available],
-      ['Under maintenance', d.resources.maintenance], ['Pending requests', d.bookings.pending],
-      ['Approved bookings', d.bookings.approved], ['Booked today', d.bookings.today]
-    ];
-    $('stats').innerHTML = cards.map(([l, n]) => `<div class="stat"><b>${n ?? 0}</b><small>${l}</small></div>`).join('');
+    function esc(v) {
+      return String(v ?? '').replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+    }
 
-    const max = Math.max(1, ...d.byType.map(t => t.bookings));
-    $('chart').innerHTML = d.byType.length ? d.byType.map(t => `
-      <div class="bar"><span class="lbl">${esc(t.type_name)}</span>
-      <div class="track"><div class="fill" style="width:${t.bookings / max * 100}%"></div></div>
-      <span class="n">${t.bookings}</span></div>`).join('') : '<p class="empty">Abhi koi data nahi.</p>';
+    function setApiPill(id, textId, state, text) {
+      $(id).className = `status-pill ${state}`;
+      $(textId).textContent = text;
+    }
 
-    $('upcoming').innerHTML = d.upcoming.length ? d.upcoming.map(u => `
-      <div class="item"><b>${esc(u.title)}</b> <span class="badge ${u.status}">${u.status}</span>
-      <small>${esc(u.resource_name)} · ${fmt(u.start_time)}</small></div>`).join('')
-      : '<p class="empty">Koi upcoming booking nahi. New booking se shuru karo.</p>';
-  } catch (e) { toast('Dashboard load nahi hua: ' + e.message, 'e'); }
-}
+    function showBanner(elId, type, msg) {
+      const el = $(elId);
+      if (!msg) {
+        el.className = 'alert';
+        el.textContent = '';
+        return;
+      }
+      el.className = `alert ${type}`;
+      el.textContent = msg;
+    }
 
-// ---- resources ----
-async function loadTypes() {
-  if ($('fType').options.length > 1) return;
-  try {
-    const { data } = await api('/resource-types');
-    $('fType').innerHTML += data.map(t => `<option value="${t.resource_type_id}">${esc(t.type_name)}</option>`).join('');
-  } catch (e) {}
-}
-async function loadResources() {
-  loadTypes();
-  const q = new URLSearchParams();
-  if ($('fSearch').value) q.set('search', $('fSearch').value);
-  if ($('fType').value) q.set('type_id', $('fType').value);
-  if ($('fStatus').value) q.set('status', $('fStatus').value);
-  if ($('fCap').value) q.set('min_capacity', $('fCap').value);
-  try {
-    const { data } = await api('/resources?' + q);
-    $('resBody').innerHTML = data.length ? data.map(r => `<tr>
-      <td>${r.resource_id}</td><td><b>${esc(r.resource_name)}</b></td><td>${esc(r.type_name)}</td>
-      <td>${esc(r.building_name)}</td><td>${esc(r.room_number)}</td><td>${r.capacity ?? ''}</td>
-      <td><span class="badge ${r.status}">${esc(r.status)}</span></td>
-      <td>${r.status === 'Available' ? `<button class="btn sm" onclick="bookThis(${r.resource_id})">Book</button>` : ''}</td></tr>`).join('')
-      : '<tr><td colspan="8" class="empty">Is filter se koi resource nahi mila.</td></tr>';
-  } catch (e) { $('resBody').innerHTML = `<tr><td colspan="8" class="empty">${esc(e.message)}. Backend chal raha hai?</td></tr>`; }
-}
-$('fGo').onclick = loadResources;
-$('fSearch').onkeydown = (e) => e.key === 'Enter' && loadResources();
-function bookThis(id) { show('book'); setTimeout(() => { $('resourceId').value = id; showSlots(); }, 300); }
+    function isAvailable(status) {
+      const s = String(status || '').trim().toLowerCase();
+      return s === 'available' || s === 'active';
+    }
 
-// ---- book ----
-async function loadBookForm() {
-  try {
-    const { data } = await api('/resources?status=Available');
-    const cur = $('resourceId').value;
-    $('resourceId').innerHTML = data.map(r => `<option value="${r.resource_id}">${esc(r.resource_name)} (${esc(r.building_name)}, cap ${r.capacity})</option>`).join('');
-    if (cur) $('resourceId').value = cur;
-    showSlots();
-  } catch (e) { toast(e.message, 'e'); }
-}
-async function showSlots() {
-  const id = $('resourceId').value; if (!id) return;
-  try {
-    const { data } = await api(`/resources/${id}/schedule`);
-    $('slots').className = '';
-    $('slots').innerHTML = data.length ? data.map(s => `<div class="item"><b>${esc(s.title)}</b>
-      <span class="badge ${s.status}">${s.status}</span><small>${fmt(s.start_time)} → ${fmt(s.end_time)}</small></div>`).join('')
-      : '<p class="empty">Koi booking nahi, sab slots free hain.</p>';
-  } catch (e) {}
-}
-$('resourceId').onchange = showSlots;
-$('bookForm').onsubmit = async (e) => {
-  e.preventDefault();
-  const body = {
-    user_id: +$('userId').value, resource_id: +$('resourceId').value,
-    title: $('title').value.trim(), purpose: $('purpose').value.trim(),
-    start_time: $('startTime').value.replace('T', ' ') + ':00',
-    end_time: $('endTime').value.replace('T', ' ') + ':00'
-  };
-  try {
-    const r = await api('/bookings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    toast(`Booking #${r.booking_id} submit ho gayi.`);
-    $('bookForm').reset(); showSlots();
-  } catch (err) { toast(err.message, 'e'); }
-};
+    function renderResourceBadge(status) {
+      const s = String(status || '').trim().toLowerCase();
+      if (s === 'available' || s === 'active') return '<span class="badge ok">Available</span>';
+      if (s === 'under_maintenance' || s === 'maintenance') return '<span class="badge warn">Maintenance</span>';
+      return `<span class="badge bad">${esc(status || 'Unavailable')}</span>`;
+    }
 
-// ---- manage ----
-async function loadBookings() {
-  const q = new URLSearchParams();
-  if ($('bStatus').value) q.set('status', $('bStatus').value);
-  if ($('bUser').value) q.set('user_id', $('bUser').value);
-  try {
-    const { data } = await api('/bookings?' + q);
-    $('bkBody').innerHTML = data.length ? data.map(b => `<tr>
-      <td>${b.booking_id}</td><td><b>${esc(b.title)}</b></td><td>${b.user_id}</td><td>${esc(b.resource_name)}</td>
-      <td>${fmt(b.start_time)}</td><td>${fmt(b.end_time)}</td>
-      <td><span class="badge ${b.status}">${b.status}</span></td>
-      <td>${b.status === 'Pending' ? `<button class="btn sm ok" onclick="setStatus(${b.booking_id},'Approved')">Approve</button>
-        <button class="btn sm bad" onclick="setStatus(${b.booking_id},'Rejected')">Reject</button>` : ''}
-        ${['Pending', 'Approved'].includes(b.status) ? `<button class="btn sm ghost" onclick="setStatus(${b.booking_id},'Cancelled')">Cancel</button>` : ''}</td></tr>`).join('')
-      : '<tr><td colspan="8" class="empty">Koi booking nahi mili.</td></tr>';
-  } catch (e) { $('bkBody').innerHTML = `<tr><td colspan="8" class="empty">${esc(e.message)}</td></tr>`; }
-}
-$('bGo').onclick = loadBookings;
-async function setStatus(id, status) {
-  try {
-    await api(`/bookings/${id}/status`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
-    toast(`Booking #${id} ${status} ho gayi.`); loadBookings();
-  } catch (e) { toast(e.message, 'e'); }
-}
+    function renderBookingStatus(status) {
+      const s = String(status || '').trim().toLowerCase();
+      if (s === 'pending') return '<span class="badge warn">Pending</span>';
+      if (s === 'confirmed') return '<span class="badge ok">Approved</span>';
+      if (s === 'completed') return '<span class="badge indigo">Completed</span>';
+      const label = s ? s[0].toUpperCase() + s.slice(1) : 'Unknown';
+      return `<span class="badge bad">${esc(label)}</span>`;
+    }
 
-loadDashboard();
-</script>
+    function renderSeverityBadge(severity) {
+      const s = String(severity || '').trim().toLowerCase();
+      if (s === 'critical' || s === 'high') return `<span class="badge bad">${esc(severity)}</span>`;
+      if (s === 'medium') return `<span class="badge warn">${esc(severity)}</span>`;
+      return `<span class="badge ok">${esc(severity || 'Low')}</span>`;
+    }
+
+    function renderReportStatusBadge(status) {
+      const s = String(status || '').trim().toLowerCase();
+      if (s === 'completed') return '<span class="badge ok">Completed</span>';
+      if (s === 'in_progress') return '<span class="badge warn">In Progress</span>';
+      return `<span class="badge indigo">${esc(status || 'Open')}</span>`;
+    }
+
+    function pushLog(entry) {
+      logs.unshift({
+        ...entry,
+        time: new Date().toLocaleTimeString()
+      });
+      renderLogs();
+    }
+
+    function renderLogs() {
+      if (!logs.length) {
+        $('activityLog').innerHTML = '<div class="empty-state" style="padding:14px;">No transactions recorded yet in this session.</div>';
+        return;
+      }
+      $('activityLog').innerHTML = logs.slice(0, 10).map((item) => `
+        <div class="feed-item ${item.tone || (item.ok ? 'ok' : 'bad')}">
+          <div>
+            <strong>${esc(item.label)}</strong> · ${esc(item.summary)}
+            <div class="res-meta">${esc(item.detail)}</div>
+          </div>
+          <span class="mono" style="color:var(--muted); white-space:nowrap;">${esc(item.time)}</span>
+        </div>
+      `).join('');
+    }
+
+    function updateKPIs() {
+      $('kpiTotal').textContent = allResources.length;
+      const availCount = allResources.filter((r) => isAvailable(r.status)).length;
+      const maintCount = allResources.filter((r) => String(r.status || '').toLowerCase() === 'under_maintenance').length;
+      $('kpiAvail').textContent = availCount;
+      $('kpiMaint').textContent = maintCount;
+
+      const activeBookings = allBookings.filter((b) => {
+        const s = String(b.status || '').toLowerCase();
+        return s === 'pending' || s === 'confirmed';
+      }).length;
+      $('kpiActiveBookings').textContent = activeBookings;
+      $('kpiActiveSub').textContent = `${allBookings.length} recent bookings loaded`;
+
+      const openReports = allReports.filter((r) => {
+        const s = String(r.status || '').toLowerCase();
+        return s === 'open' || s === 'in_progress';
+      }).length;
+      $('kpiOpenReports').textContent = openReports;
+      $('kpiReportsSub').textContent = `${allReports.length} total documents in MongoDB`;
+    }
+
+    function updateResourcePreview() {
+      const id = Number($('resourceId').value);
+      selectedResourceId = id || null;
+      const res = allResources.find((r) => Number(r.resource_id) === id);
+      const box = $('resourcePreview');
+
+      if (!res) {
+        box.style.display = 'none';
+        return;
+      }
+
+      const locParts = [
+        res.building_name,
+        res.floor_number !== null && res.floor_number !== undefined ? `Floor ${res.floor_number}` : '',
+        res.room_number ? `Room ${res.room_number}` : '',
+        res.campus
+      ].filter(Boolean);
+
+      box.style.display = 'block';
+      box.innerHTML = `
+        <div class="preview-top">
+          <div>
+            <div class="preview-title">#${res.resource_id} · ${esc(res.resource_name)} ${res.resource_code ? `<span class="code-tag">${esc(res.resource_code)}</span>` : ''}</div>
+            <div class="preview-sub">${esc(res.resource_type || 'Resource')} · ${esc(locParts.join(' · ') || 'Campus')} · Capacity: ${res.capacity ?? 'N/A'}</div>
+          </div>
+          ${renderResourceBadge(res.status)}
+        </div>
+        ${res.description ? `<div class="preview-desc">${esc(res.description)}</div>` : ''}
+      `;
+    }
+
+    function syncDropdowns(resources) {
+      const currentType = $('typeFilter').value;
+      const types = [...new Set(resources.map((r) => r.resource_type).filter(Boolean))].sort();
+      $('typeFilter').innerHTML = '<option value="">All Categories</option>' +
+        types.map((t) => `<option value="${esc(t)}">${esc(t)}</option>`).join('');
+      if (types.includes(currentType)) $('typeFilter').value = currentType;
+
+      // Booking form dropdown (available resources)
+      const availableResources = resources.filter((r) => isAvailable(r.status));
+      const currentRes = $('resourceId').value;
+      if (!availableResources.length) {
+        $('resourceId').innerHTML = '<option value="">No available resources</option>';
+      } else {
+        $('resourceId').innerHTML = availableResources.map((r) => {
+          const loc = [r.building_name, r.room_number].filter(Boolean).join(' ');
+          return `<option value="${r.resource_id}">#${r.resource_id} — ${esc(r.resource_name)}${loc ? ` · ${esc(loc)}` : ''}</option>`;
+        }).join('');
+        if (currentRes && availableResources.some((r) => String(r.resource_id) === String(currentRes))) {
+          $('resourceId').value = currentRes;
+        }
+      }
+      updateResourcePreview();
+
+      // Maintenance report modal dropdown (all resources)
+      const currentModalRes = $('reportResourceSelect').value;
+      $('reportResourceSelect').innerHTML = resources.map((r) =>
+        `<option value="${r.resource_id}">#${r.resource_id} · ${esc(r.resource_code || '')} — ${esc(r.resource_name)}</option>`
+      ).join('');
+      if (currentModalRes && resources.some((r) => String(r.resource_id) === String(currentModalRes))) {
+        $('reportResourceSelect').value = currentModalRes;
+      }
+    }
+
+    function renderResourcesTable() {
+      const typeVal = $('typeFilter').value;
+      const filtered = allResources.filter((r) => {
+        if (typeVal && r.resource_type !== typeVal) return false;
+        if (statusFilterValue && String(r.status || '').trim().toLowerCase() !== statusFilterValue) return false;
+        return true;
+      });
+
+      if (!filtered.length) {
+        $('resourcesBody').innerHTML = '<tr><td colspan="7" class="empty-state">No resources match the active filters.</td></tr>';
+        return;
+      }
+
+      $('resourcesBody').innerHTML = filtered.map((r) => {
+        const isSel = Number(r.resource_id) === Number(selectedResourceId);
+        const loc = [r.building_name, r.room_number ? `${r.room_number}` : ''].filter(Boolean).join(' · ') || '—';
+        const avail = isAvailable(r.status);
+
+        return `
+          <tr class="${isSel ? 'selected' : ''}">
+            <td class="mono" style="color:var(--muted);">#${r.resource_id}</td>
+            <td>
+              <div class="res-name">${esc(r.resource_name)}</div>
+              ${r.resource_code ? `<span class="code-tag">${esc(r.resource_code)}</span>` : ''}
+            </td>
+            <td class="res-meta">${esc(r.resource_type || '—')}</td>
+            <td class="res-meta">${esc(loc)}</td>
+            <td style="font-variant-numeric:tabular-nums;">${r.capacity ?? '—'}</td>
+            <td>${renderResourceBadge(r.status)}</td>
+            <td style="text-align:right;">
+              <button type="button" class="btn ${isSel ? 'btn-primary' : 'btn-ghost'} btn-xs"
+                ${avail ? '' : 'disabled title="Resource currently under maintenance"'}
+                onclick="pickResource(${r.resource_id})">
+                ${isSel ? 'Selected' : 'Select to Book'}
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function pickResource(id) {
+      $('resourceId').value = String(id);
+      updateResourcePreview();
+      renderResourcesTable();
+      $('userId').focus();
+    }
+
+    async function loadResources() {
+      const search = $('searchInput').value.trim();
+      const url = search
+        ? `${API_BASE}/resources?search=${encodeURIComponent(search)}`
+        : `${API_BASE}/resources`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        if (!res.ok || !Array.isArray(data)) {
+          throw new Error(data.error || 'Unable to load resources');
+        }
+        allResources = data;
+        setApiPill('apiStatus', 'apiStatusText', 'online', 'MySQL Online · :3000');
+        syncDropdowns(allResources);
+        renderResourcesTable();
+        updateKPIs();
+      } catch (err) {
+        setApiPill('apiStatus', 'apiStatusText', 'offline', 'MySQL Offline');
+        $('resourcesBody').innerHTML = `<tr><td colspan="7" class="empty-state">Could not reach API (${esc(err.message)}). Start <code>node app/server.js</code>.</td></tr>`;
+      }
+    }
+
+    function renderBookings(bookings) {
+      if (!bookings.length) {
+        $('bookingsBody').innerHTML = '<tr><td colspan="6" class="empty-state">No recent bookings found.</td></tr>';
+        return;
+      }
+
+      $('bookingsBody').innerHTML = bookings.map((b) => {
+        const status = String(b.status || '').trim().toLowerCase();
+        const canCancel = status === 'pending' || status === 'confirmed';
+        return `
+          <tr>
+            <td class="mono" style="color:var(--muted);">#${esc(b.booking_id)}</td>
+            <td>
+              <div class="res-name">${esc(b.resource_name || 'Resource unavailable')}</div>
+              ${b.resource_code ? `<span class="code-tag">${esc(b.resource_code)}</span>` : ''}
+            </td>
+            <td>${esc(b.full_name || 'Unknown user')}</td>
+            <td class="mono" style="color:var(--text-secondary);">${esc(b.start_time)} → ${esc(b.end_time)}</td>
+            <td>${renderBookingStatus(status)}</td>
+            <td style="text-align:right;">
+              ${canCancel
+                ? `<button type="button" class="btn btn-danger btn-xs" data-cancel-id="${esc(b.booking_id)}">Cancel</button>`
+                : '<span class="res-meta">—</span>'}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function loadBookings() {
+      try {
+        const res = await fetch(`${API_BASE}/bookings`);
+        const data = await res.json();
+        if (!res.ok || !Array.isArray(data)) {
+          throw new Error(data.error || 'Unable to load bookings.');
+        }
+        allBookings = data;
+        renderBookings(allBookings);
+        updateKPIs();
+      } catch (err) {
+        $('bookingsBody').innerHTML = `<tr><td colspan="6" class="empty-state">Could not load bookings (${esc(err.message)}).</td></tr>`;
+      }
+    }
+
+    async function cancelBooking(bookingId, button) {
+      button.disabled = true;
+      try {
+        const res = await fetch(`${API_BASE}/bookings/${encodeURIComponent(bookingId)}`, { method: 'DELETE' });
+        const result = await res.json();
+        if (!res.ok || !result.success) {
+          throw new Error(`HTTP ${res.status} — ${result.error || 'Unable to cancel booking.'}`);
+        }
+        const msg = `Booking #${result.booking_id} cancelled and slot released.`;
+        showBanner('bookingsAlert', 'ok', msg);
+        showBanner('formAlert', 'ok', msg);
+        pushLog({
+          tone: 'ok',
+          label: 'Cancelled',
+          summary: `Booking #${result.booking_id}`,
+          detail: 'Slot released via DELETE /api/bookings/:id'
+        });
+        await Promise.all([loadBookings(), loadResources()]);
+      } catch (err) {
+        showBanner('bookingsAlert', 'bad', err.message);
+        pushLog({
+          tone: 'bad',
+          label: 'Cancel Failed',
+          summary: `Booking #${bookingId}`,
+          detail: err.message
+        });
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    function renderReportsPanel() {
+      const bySeverity = reportBreakdown.by_severity || [];
+      const byStatus = reportBreakdown.by_status || [];
+
+      if (!bySeverity.length && !byStatus.length) {
+        $('aggStrip').innerHTML = '<span class="agg-group-label">Aggregation Breakdown:</span><span class="res-meta">No summary metrics available.</span>';
+      } else {
+        const sevPills = bySeverity.map((s) =>
+          `<span class="agg-pill">${esc(s.severity)}: <strong>${s.count}</strong></span>`
+        ).join('');
+        const statusPills = byStatus.map((s) =>
+          `<span class="agg-pill">${esc(s.status)}: <strong>${s.count}</strong></span>`
+        ).join('');
+        $('aggStrip').innerHTML = `
+          <span class="agg-group-label">Severity:</span>${sevPills}
+          <span class="agg-group-label" style="margin-left:10px;">Status:</span>${statusPills}
+        `;
+      }
+
+      if (!allReports.length) {
+        $('reportsGrid').innerHTML = '<div class="empty-state" style="grid-column:1/-1;">No maintenance reports found in MongoDB.</div>';
+        return;
+      }
+
+      $('reportsGrid').innerHTML = allReports.slice(0, 12).map((rep) => {
+        const title = rep.resource_name || rep.equipment_name || `Resource #${rep.resource_id}`;
+        const techName = typeof rep.technician === 'string'
+          ? rep.technician
+          : (rep.technician?.name || 'Unassigned');
+        const dateRaw = rep.created_at || rep.inspection_date;
+        const dateStr = dateRaw ? new Date(dateRaw).toLocaleDateString() : '—';
+
+        const telemetryObj = rep.telemetry || rep.sensor_telemetry || {};
+        const telemetryEntries = Object.entries(telemetryObj).slice(0, 4);
+        const telemetryHtml = telemetryEntries.length
+          ? `<div class="telemetry-tags">${telemetryEntries.map(([k, v]) =>
+              `<span class="t-tag">${esc(k)}: <b>${esc(v)}</b></span>`
+            ).join('')}</div>`
+          : '';
+
+        const checklist = Array.isArray(rep.checklist) ? rep.checklist.slice(0, 3) : [];
+        const checklistHtml = checklist.length
+          ? `<div class="checklist-box">${checklist.map((item) => {
+              const passed = item.passed !== false;
+              const label = item.check_item || item.item || String(item);
+              return `<div class="chk-row"><span class="chk-icon ${passed ? 'pass' : 'fail'}">${passed ? '✓' : '✕'}</span><span>${esc(label)}</span></div>`;
+            }).join('')}</div>`
+          : '';
+
+        return `
+          <article class="report-card">
+            <div class="report-head">
+              <div>
+                <div class="mono" style="color:var(--muted);">${esc(rep.report_id || 'REPORT')} ${rep.resource_code ? `· ${esc(rep.resource_code)}` : ''}</div>
+                <div class="report-title">${esc(title)}</div>
+              </div>
+              <div style="display:flex; gap:4px; flex-wrap:wrap; justify-content:flex-end;">
+                ${renderSeverityBadge(rep.severity)}
+                ${renderReportStatusBadge(rep.status)}
+              </div>
+            </div>
+            ${rep.issue_summary ? `<div class="report-summary">${esc(rep.issue_summary)}</div>` : (rep.category ? `<div class="report-summary">${esc(rep.category)}</div>` : '')}
+            ${telemetryHtml}
+            ${checklistHtml}
+            <div class="report-foot">
+              <span>Tech: <strong>${esc(techName)}</strong></span>
+              <span>${esc(dateStr)}${rep.total_cost_usd ? ` · $${Number(rep.total_cost_usd).toFixed(0)}` : ''}</span>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    async function loadMaintenanceReports() {
+      try {
+        const res = await fetch(`${API_BASE}/maintenance-reports`);
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || `HTTP ${res.status}`);
+        }
+        allReports = Array.isArray(data.reports) ? data.reports : [];
+        reportBreakdown = data.breakdown || { by_severity: [], by_status: [] };
+        setApiPill('mongoStatus', 'mongoStatusText', 'online', `MongoDB Online · ${allReports.length} Docs`);
+        renderReportsPanel();
+        updateKPIs();
+      } catch (err) {
+        setApiPill('mongoStatus', 'mongoStatusText', 'warn', 'MongoDB Offline (Fallback)');
+        $('aggStrip').innerHTML = '<span class="agg-group-label">Aggregation Breakdown:</span><span class="res-meta">Unavailable while MongoDB is offline.</span>';
+        $('reportsGrid').innerHTML = `<div class="empty-state" style="grid-column:1/-1;">MongoDB maintenance reports unavailable (${esc(err.message)}). MySQL booking features remain active.</div>`;
+      }
+    }
+
+    // Booking submission
+    function toSqlDateTime(dtLocal) {
+      if (!dtLocal) return '';
+      return dtLocal.length === 16 ? dtLocal.replace('T', ' ') + ':00' : dtLocal.replace('T', ' ');
+    }
+
+    function applyDuration(hours) {
+      const startVal = $('startTime').value;
+      if (!startVal) return;
+      const startDate = new Date(startVal);
+      if (Number.isNaN(startDate.getTime())) return;
+      const endDate = new Date(startDate.getTime() + hours * 60 * 60 * 1000);
+      const pad = (n) => String(n).padStart(2, '0');
+      $('endTime').value = `${endDate.getFullYear()}-${pad(endDate.getMonth() + 1)}-${pad(endDate.getDate())}T${pad(endDate.getHours())}:${pad(endDate.getMinutes())}`;
+    }
+
+    $('bookingForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = $('submitBtn');
+
+      const startValue = $('startTime').value;
+      const endValue = $('endTime').value;
+      const startDate = new Date(startValue);
+      const endDate = new Date(endValue);
+      if (!startValue || !endValue || Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime()) || startDate >= endDate) {
+        showBanner('formAlert', 'bad', '400 Bad Request — End time must be strictly after start time.');
+        return;
+      }
+
+      btn.disabled = true;
+      const startSql = toSqlDateTime(startValue);
+      const endSql = toSqlDateTime(endValue);
+      const purposeVal = $('purpose').value.trim();
+
+      const payload = {
+        user_id: Number($('userId').value),
+        resource_id: Number($('resourceId').value),
+        booking_date: startSql.slice(0, 10),
+        start_time: startSql,
+        end_time: endSql,
+        purpose: purposeVal === '' ? null : purposeVal
+      };
+
+      const resObj = allResources.find((r) => Number(r.resource_id) === payload.resource_id);
+      const resLabel = resObj ? resObj.resource_name : `Resource #${payload.resource_id}`;
+
+      try {
+        const res = await fetch(`${API_BASE}/bookings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+
+        if (!res.ok || !result.success) {
+          const errMsg = result.error || `Request failed (${res.status})`;
+          const statusTag = res.status === 409 ? '409 Conflict' : `HTTP ${res.status}`;
+          showBanner('formAlert', 'bad', `${statusTag} — ${errMsg}`);
+          pushLog({
+            tone: 'bad',
+            label: statusTag,
+            summary: `${resLabel} (User #${payload.user_id})`,
+            detail: `${startSql} → ${endSql} · ${errMsg}`
+          });
+          return;
+        }
+
+        const msg = `201 Created — Booking #${result.booking_id} submitted (Pending) for ${resLabel}.`;
+        showBanner('formAlert', 'ok', msg);
+        pushLog({
+          tone: 'ok',
+          label: 'Booking Created',
+          summary: `Booking #${result.booking_id} · ${resLabel}`,
+          detail: `User #${payload.user_id} · ${startSql} → ${endSql}`
+        });
+        await Promise.all([loadBookings(), loadResources()]);
+      } catch (err) {
+        showBanner('formAlert', 'bad', `Network error: ${err.message}`);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    // Modal handlers for MongoDB Maintenance Report
+    function openReportModal() {
+      showBanner('reportModalAlert', '', '');
+      if (selectedResourceId && $('reportResourceSelect').querySelector(`option[value="${selectedResourceId}"]`)) {
+        $('reportResourceSelect').value = String(selectedResourceId);
+      }
+      $('reportModalBackdrop').classList.add('open');
+      $('reportIssue').focus();
+    }
+
+    function closeReportModal() {
+      $('reportModalBackdrop').classList.remove('open');
+    }
+
+    $('reportForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = $('submitReportBtn');
+      const resourceId = Number($('reportResourceSelect').value);
+      const resObj = allResources.find((r) => Number(r.resource_id) === resourceId);
+
+      let telemetry = {};
+      const rawTelemetry = $('reportTelemetry').value.trim();
+      if (rawTelemetry) {
+        try {
+          telemetry = JSON.parse(rawTelemetry);
+          if (!telemetry || typeof telemetry !== 'object' || Array.isArray(telemetry)) {
+            throw new Error('Telemetry must be a JSON object.');
+          }
+        } catch (parseErr) {
+          showBanner('reportModalAlert', 'bad', `Invalid Telemetry JSON: ${parseErr.message}`);
+          return;
+        }
+      }
+
+      const checklist = $('reportChecklist').value
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => {
+          const failed = line.startsWith('!');
+          return {
+            check_item: failed ? line.slice(1).trim() : line,
+            passed: !failed
+          };
+        });
+
+      const payload = {
+        resource_id: resourceId,
+        resource_code: resObj?.resource_code || '',
+        resource_name: resObj?.resource_name || `Resource #${resourceId}`,
+        category: resObj?.resource_type || 'Campus Equipment',
+        issue_summary: $('reportIssue').value.trim(),
+        severity: $('reportSeverity').value,
+        status: $('reportStatus').value,
+        technician: { name: $('reportTechnician').value.trim() },
+        telemetry,
+        checklist
+      };
+
+      btn.disabled = true;
+      try {
+        const res = await fetch(`${API_BASE}/maintenance-reports`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        if (!res.ok || !result.success) {
+          throw new Error(result.error || `HTTP ${res.status}`);
+        }
+
+        closeReportModal();
+        const msg = `MongoDB report ${result.report_id} logged for ${payload.resource_name}.`;
+        showBanner('reportsAlert', 'ok', msg);
+        pushLog({
+          tone: 'info',
+          label: 'MongoDB Report',
+          summary: `${result.report_id} · ${payload.severity}`,
+          detail: `${payload.resource_name} — ${payload.issue_summary}`
+        });
+        $('reportIssue').value = '';
+        await loadMaintenanceReports();
+      } catch (err) {
+        showBanner('reportModalAlert', 'bad', `Unable to save report: ${err.message}`);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    // Event wiring
+    $('searchBtn').addEventListener('click', loadResources);
+    $('refreshBtn').addEventListener('click', loadResources);
+    $('refreshBookingsBtn').addEventListener('click', loadBookings);
+    $('refreshReportsBtn').addEventListener('click', loadMaintenanceReports);
+
+    $('openReportModalBtn').addEventListener('click', openReportModal);
+    $('closeReportModalBtn').addEventListener('click', closeReportModal);
+    $('cancelReportModalBtn').addEventListener('click', closeReportModal);
+    $('reportModalBackdrop').addEventListener('click', (e) => {
+      if (e.target === $('reportModalBackdrop')) closeReportModal();
+    });
+
+    $('bookingsBody').addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-cancel-id]');
+      if (btn && !btn.disabled) cancelBooking(btn.dataset.cancelId, btn);
+    });
+
+    document.querySelectorAll('.seg-btn[data-status-filter]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.seg-btn[data-status-filter]').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        statusFilterValue = btn.dataset.statusFilter;
+        renderResourcesTable();
+      });
+    });
+
+    $('resetFiltersBtn').addEventListener('click', () => {
+      $('searchInput').value = '';
+      $('typeFilter').value = '';
+      statusFilterValue = '';
+      document.querySelectorAll('.seg-btn[data-status-filter]').forEach((b) => {
+        b.classList.toggle('active', b.dataset.statusFilter === '');
+      });
+      loadResources();
+    });
+
+    $('searchInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') loadResources(); });
+    $('typeFilter').addEventListener('change', renderResourcesTable);
+    $('resourceId').addEventListener('change', () => {
+      updateResourcePreview();
+      renderResourcesTable();
+    });
+    $('purpose').addEventListener('input', () => {
+      $('charCount').textContent = `${$('purpose').value.length} / 255`;
+    });
+    $('clearLogBtn').addEventListener('click', () => {
+      logs.length = 0;
+      renderLogs();
+    });
+    document.querySelectorAll('.chip[data-hours]').forEach((chip) => {
+      chip.addEventListener('click', () => applyDuration(Number(chip.dataset.hours)));
+    });
+
+    // Default booking window: tomorrow 10:00 - 11:00
+    (function initDefaults() {
+      const d = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      const pad = (n) => String(n).padStart(2, '0');
+      const dayStr = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+      $('startTime').value = `${dayStr}T10:00`;
+      $('endTime').value = `${dayStr}T11:00`;
+    })();
+
+    // Initial parallel fetch
+    Promise.all([loadResources(), loadBookings(), loadMaintenanceReports()]);
+  </script>
 </body>
 </html>

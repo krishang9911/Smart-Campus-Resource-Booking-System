@@ -76,6 +76,7 @@ CREATE PROCEDURE sp_create_booking(
 )
 proc_create_booking: BEGIN
     DECLARE v_resource_id INT DEFAULT NULL;
+    DECLARE v_resource_status VARCHAR(30) DEFAULT NULL;
     DECLARE v_booking_id INT DEFAULT NULL;
 
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -93,17 +94,24 @@ proc_create_booking: BEGIN
             SET MESSAGE_TEXT = 'End time must be later than start time';
     END IF;
 
-    SELECT resource_id
-    INTO v_resource_id
+    SELECT status
+    INTO v_resource_status
     FROM RESOURCE
     WHERE resource_id = p_resource_id
     FOR UPDATE;
 
-    IF v_resource_id IS NULL THEN
+    IF v_resource_status IS NULL THEN
         ROLLBACK;
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'Resource does not exist';
     END IF;
+
+    IF v_resource_status <> 'available' THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Resource is not available for booking';
+    END IF;
+
+    SET v_resource_id = p_resource_id;
 
     INSERT INTO BOOKING (
         user_id,
@@ -176,17 +184,17 @@ CREATE ROLE faculty_role;
 DROP ROLE IF EXISTS admin_role;
 CREATE ROLE admin_role;
 
--- Explicitly limit the student role to read resources and create/read bookings.
+-- Students create bookings only through the transaction-safe procedure.
 GRANT SELECT ON smart_campus_db.RESOURCE TO student_role;
-GRANT SELECT, INSERT ON smart_campus_db.BOOKING TO student_role;
-GRANT SELECT, INSERT ON smart_campus_db.BOOKING_ITEM TO student_role;
+GRANT SELECT ON smart_campus_db.BOOKING TO student_role;
+GRANT SELECT ON smart_campus_db.BOOKING_ITEM TO student_role;
 GRANT SELECT ON smart_campus_db.APPROVAL TO student_role;
 GRANT EXECUTE ON PROCEDURE smart_campus_db.sp_create_booking TO student_role;
 
 -- Faculty can book and view operational records, plus participate in approvals.
 GRANT SELECT ON smart_campus_db.RESOURCE TO faculty_role;
-GRANT SELECT, INSERT, UPDATE ON smart_campus_db.BOOKING TO faculty_role;
-GRANT SELECT, INSERT, UPDATE ON smart_campus_db.BOOKING_ITEM TO faculty_role;
+GRANT SELECT ON smart_campus_db.BOOKING TO faculty_role;
+GRANT SELECT ON smart_campus_db.BOOKING_ITEM TO faculty_role;
 GRANT SELECT, INSERT, UPDATE ON smart_campus_db.APPROVAL TO faculty_role;
 GRANT SELECT, INSERT ON smart_campus_db.CANCELLATION TO faculty_role;
 GRANT EXECUTE ON PROCEDURE smart_campus_db.sp_create_booking TO faculty_role;
@@ -206,3 +214,23 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON smart_campus_db.RESOURCE_TYPE TO admin_r
 GRANT SELECT, INSERT, UPDATE, DELETE ON smart_campus_db.DEPARTMENT TO admin_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON smart_campus_db.ROLE TO admin_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON smart_campus_db.`USER` TO admin_role;
+
+-- Preserve the audit trail by revoking the admin role's DELETE privilege.
+REVOKE DELETE ON smart_campus_db.AUDIT_LOG FROM admin_role;
+
+-- Transaction Demonstration 3: roll back an optional step to a savepoint.
+-- A temporary table keeps this demonstration isolated from application data.
+DROP TEMPORARY TABLE IF EXISTS booking_tcl_savepoint_demo;
+CREATE TEMPORARY TABLE booking_tcl_savepoint_demo (
+    step_name VARCHAR(50) PRIMARY KEY
+);
+
+START TRANSACTION;
+INSERT INTO booking_tcl_savepoint_demo (step_name) VALUES ('required step');
+SAVEPOINT after_required_step;
+INSERT INTO booking_tcl_savepoint_demo (step_name) VALUES ('optional step');
+ROLLBACK TO SAVEPOINT after_required_step;
+COMMIT;
+
+SELECT * FROM booking_tcl_savepoint_demo;
+DROP TEMPORARY TABLE booking_tcl_savepoint_demo;
