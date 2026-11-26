@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Campus Booking</title>
+<style>
+:root{
+  --ink:#16302b; --ink2:#1f423b; --paper:#f3f5f1; --card:#fff; --line:#dfe5df;
+  --text:#1c2a27; --mute:#64756f; --accent:#d9822b; --ok:#2f7d4f; --warn:#b7791f; --bad:#b83b3b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Trebuchet MS','Segoe UI',sans-serif;background:var(--paper);color:var(--text);display:flex;min-height:100vh}
+aside{width:230px;background:var(--ink);color:#d6e3de;padding:24px 14px;position:sticky;top:0;height:100vh;flex-shrink:0}
+aside h1{font-size:1.1rem;color:#fff;padding:0 10px 22px;line-height:1.3}
+aside h1 span{color:var(--accent)}
+.nav{display:block;width:100%;text-align:left;background:none;border:0;color:inherit;font:inherit;padding:11px 12px;border-radius:6px;cursor:pointer;margin-bottom:4px}
+.nav:hover{background:var(--ink2)}
+.nav.active{background:var(--accent);color:#fff;font-weight:600}
+.nav:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+main{flex:1;padding:28px;min-width:0}
+.view{display:none}.view.active{display:block}
+h2{font-size:1.5rem;margin-bottom:4px}
+.sub{color:var(--mute);margin-bottom:22px;font-size:.92rem}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:22px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px;border-left:4px solid var(--accent)}
+.stat b{display:block;font-size:1.9rem}
+.stat small{color:var(--mute)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:20px}
+.box h3{font-size:1.05rem;margin-bottom:14px}
+.bar{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:.88rem}
+.bar .lbl{width:110px;flex-shrink:0}
+.bar .track{flex:1;background:#eaefea;border-radius:4px;height:14px}
+.bar .fill{background:var(--ink);height:100%;border-radius:4px;min-width:2px}
+.bar .n{width:26px;text-align:right;color:var(--mute)}
+.item{padding:10px 0;border-bottom:1px solid var(--line);font-size:.9rem}
+.item:last-child{border:0}.item small{color:var(--mute);display:block}
+.empty{color:var(--mute);padding:14px 0;font-size:.9rem}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+input,select,textarea,button{font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:6px;background:#fff}
+.toolbar input{flex:1;min-width:160px}
+.btn{background:var(--ink);color:#fff;border:0;cursor:pointer;font-weight:600}
+.btn:hover{background:var(--ink2)}
+.btn.sm{padding:5px 10px;font-size:.8rem}
+.btn.ok{background:var(--ok)}.btn.bad{background:var(--bad)}.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{background:#eef2ee;font-weight:600}
+.badge{padding:3px 9px;border-radius:10px;font-size:.75rem;font-weight:600}
+.Available,.Approved{background:#dcefe3;color:var(--ok)}
+.Pending{background:#fbeccd;color:var(--warn)}
+.Maintenance,.Rejected,.Cancelled{background:#f5dada;color:var(--bad)}
+form label{display:block;font-weight:600;font-size:.85rem;margin:12px 0 4px;color:var(--mute)}
+form input,form textarea,form select{width:100%}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+form .btn{margin-top:18px;width:100%;padding:11px}
+#toast{position:fixed;right:20px;bottom:20px;padding:12px 18px;border-radius:6px;color:#fff;display:none;max-width:340px;font-size:.9rem;z-index:9}
+#toast.s{background:var(--ok)}#toast.e{background:var(--bad)}
+.sched{margin-top:14px;font-size:.85rem}
+@media(max-width:860px){
+  body{flex-direction:column}
+  aside{width:100%;height:auto;position:static;display:flex;flex-wrap:wrap;gap:4px;padding:12px}
+  aside h1{width:100%;padding:0 4px 8px}
+  .nav{width:auto}
+  .grid2,.row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<aside>
+  <h1>Smart Campus<br><span>Resource Booking</span></h1>
+  <button class="nav active" data-view="dashboard">Dashboard</button>
+  <button class="nav" data-view="resources">Resources</button>
+  <button class="nav" data-view="book">New booking</button>
+  <button class="nav" data-view="bookings">Manage bookings</button>
+</aside>
+
+<main>
+  <!-- DASHBOARD -->
+  <section id="dashboard" class="view active">
+    <h2>Dashboard</h2>
+    <p class="sub">Campus ka aaj ka overview.</p>
+    <div class="stats" id="stats"></div>
+    <div class="grid2">
+      <div class="box"><h3>Bookings by resource type</h3><div id="chart"></div></div>
+      <div class="box"><h3>Upcoming bookings</h3><div id="upcoming"></div></div>
+    </div>
+  </section>
+
+  <!-- RESOURCES -->
+  <section id="resources" class="view">
+    <h2>Resources</h2>
+    <p class="sub">Search karo, filter lagao, aur slot check karo.</p>
+    <div class="toolbar">
+      <input id="fSearch" placeholder="Search name or building">
+      <select id="fType"><option value="">All types</option></select>
+      <select id="fStatus">
+        <option value="">All statuses</option>
+        <option value="Available">Available</option>
+        <option value="Maintenance">Maintenance</option>
+      </select>
+      <input id="fCap" type="number" min="1" placeholder="Min capacity" style="max-width:140px">
+      <button class="btn" id="fGo">Apply</button>
+    </div>
+    <div class="box tw">
+      <table>
+        <thead><tr><th>ID</th><th>Resource</th><th>Type</th><th>Building</th><th>Room</th><th>Cap.</th><th>Status</th><th></th></tr></thead>
+        <tbody id="resBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- BOOK -->
+  <section id="book" class="view">
+    <h2>New booking</h2>
+    <p class="sub">Request submit hone ke baad admin approve karega.</p>
+    <div class="grid2">
+      <div class="box">
+        <form id="bookForm">
+          <div class="row">
+            <div><label for="userId">User ID</label><input type="number" id="userId" min="1" required></div>
+            <div><label for="resourceId">Resource</label><select id="resourceId" required></select></div>
+          </div>
+          <label for="title">Booking title</label><input id="title" required placeholder="e.g. DBMS project lab work">
+          <label for="purpose">Purpose</label><textarea id="purpose" rows="2"></textarea>
+          <div class="row">
+            <div><label for="startTime">Start</label><input type="datetime-local" id="startTime" required></div>
+            <div><label for="endTime">End</label><input type="datetime-local" id="endTime" required></div>
+          </div>
+          <button class="btn" type="submit">Submit request</button>
+        </form>
+      </div>
+      <div class="box"><h3>Already booked slots</h3><div id="slots" class="empty">Resource select karo.</div></div>
+    </div>
+  </section>
+
+  <!-- MANAGE -->
+  <section id="bookings" class="view">
+    <h2>Manage bookings</h2>
+    <p class="sub">Approve, reject ya cancel karo.</p>
+    <div class="toolbar">
+      <select id="bStatus">
+        <option value="">All</option><option>Pending</option><option>Approved</option><option>Rejected</option><option>Cancelled</option>
+      </select>
+      <input id="bUser" type="number" placeholder="User ID" style="max-width:140px">
+      <button class="btn" id="bGo">Apply</button>
+    </div>
+    <div class="box tw">
+      <table>
+        <thead><tr><th>#</th><th>Title</th><th>User</th><th>Resource</th><th>Start</th><th>End</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="bkBody"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+<div id="toast" role="status"></div>
+
+<script>
+const API = 'http://localhost:3000/api';
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = (s) => s ? s.slice(0, 16).replace('T', ' ') : '';
+
+async function api(path, opts) {
+  const r = await fetch(API + path, opts);
+  const j = await r.json();
+  if (!r.ok || !j.success) throw new Error(j.error || 'Request failed');
+  return j;
+}
+let tt;
+function toast(msg, type = 's') {
+  const t = $('toast'); t.textContent = msg; t.className = type; t.style.display = 'block';
+  clearTimeout(tt); tt = setTimeout(() => t.style.display = 'none', 3500);
+}
+
+// ---- navigation ----
+function show(view) {
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === view));
+  document.querySelectorAll('.nav').forEach(n => n.classList.toggle('active', n.dataset.view === view));
+  ({ dashboard: loadDashboard, resources: loadResources, book: loadBookForm, bookings: loadBookings })[view]();
+}
+document.querySelectorAll('.nav').forEach(n => n.onclick = () => show(n.dataset.view));
+
+// ---- dashboard ----
+async function loadDashboard() {
+  try {
+    const { data: d } = await api('/dashboard');
+    const cards = [
+      ['Total resources', d.resources.total], ['Available now', d.resources.available],
+      ['Under maintenance', d.resources.maintenance], ['Pending requests', d.bookings.pending],
+      ['Approved bookings', d.bookings.approved], ['Booked today', d.bookings.today]
+    ];
+    $('stats').innerHTML = cards.map(([l, n]) => `<div class="stat"><b>${n ?? 0}</b><small>${l}</small></div>`).join('');
+
+    const max = Math.max(1, ...d.byType.map(t => t.bookings));
+    $('chart').innerHTML = d.byType.length ? d.byType.map(t => `
+      <div class="bar"><span class="lbl">${esc(t.type_name)}</span>
+      <div class="track"><div class="fill" style="width:${t.bookings / max * 100}%"></div></div>
+      <span class="n">${t.bookings}</span></div>`).join('') : '<p class="empty">Abhi koi data nahi.</p>';
+
+    $('upcoming').innerHTML = d.upcoming.length ? d.upcoming.map(u => `
+      <div class="item"><b>${esc(u.title)}</b> <span class="badge ${u.status}">${u.status}</span>
+      <small>${esc(u.resource_name)} · ${fmt(u.start_time)}</small></div>`).join('')
+      : '<p class="empty">Koi upcoming booking nahi. New booking se shuru karo.</p>';
+  } catch (e) { toast('Dashboard load nahi hua: ' + e.message, 'e'); }
+}
+
+// ---- resources ----
+async function loadTypes() {
+  if ($('fType').options.length > 1) return;
+  try {
+    const { data } = await api('/resource-types');
+    $('fType').innerHTML += data.map(t => `<option value="${t.resource_type_id}">${esc(t.type_name)}</option>`).join('');
+  } catch (e) {}
+}
+async function loadResources() {
+  loadTypes();
+  const q = new URLSearchParams();
+  if ($('fSearch').value) q.set('search', $('fSearch').value);
+  if ($('fType').value) q.set('type_id', $('fType').value);
+  if ($('fStatus').value) q.set('status', $('fStatus').value);
+  if ($('fCap').value) q.set('min_capacity', $('fCap').value);
+  try {
+    const { data } = await api('/resources?' + q);
+    $('resBody').innerHTML = data.length ? data.map(r => `<tr>
+      <td>${r.resource_id}</td><td><b>${esc(r.resource_name)}</b></td><td>${esc(r.type_name)}</td>
+      <td>${esc(r.building_name)}</td><td>${esc(r.room_number)}</td><td>${r.capacity ?? ''}</td>
+      <td><span class="badge ${r.status}">${esc(r.status)}</span></td>
+      <td>${r.status === 'Available' ? `<button class="btn sm" onclick="bookThis(${r.resource_id})">Book</button>` : ''}</td></tr>`).join('')
+      : '<tr><td colspan="8" class="empty">Is filter se koi resource nahi mila.</td></tr>';
+  } catch (e) { $('resBody').innerHTML = `<tr><td colspan="8" class="empty">${esc(e.message)}. Backend chal raha hai?</td></tr>`; }
+}
+$('fGo').onclick = loadResources;
+$('fSearch').onkeydown = (e) => e.key === 'Enter' && loadResources();
+function bookThis(id) { show('book'); setTimeout(() => { $('resourceId').value = id; showSlots(); }, 300); }
+
+// ---- book ----
+async function loadBookForm() {
+  try {
+    const { data } = await api('/resources?status=Available');
+    const cur = $('resourceId').value;
+    $('resourceId').innerHTML = data.map(r => `<option value="${r.resource_id}">${esc(r.resource_name)} (${esc(r.building_name)}, cap ${r.capacity})</option>`).join('');
+    if (cur) $('resourceId').value = cur;
+    showSlots();
+  } catch (e) { toast(e.message, 'e'); }
+}
+async function showSlots() {
+  const id = $('resourceId').value; if (!id) return;
+  try {
+    const { data } = await api(`/resources/${id}/schedule`);
+    $('slots').className = '';
+    $('slots').innerHTML = data.length ? data.map(s => `<div class="item"><b>${esc(s.title)}</b>
+      <span class="badge ${s.status}">${s.status}</span><small>${fmt(s.start_time)} → ${fmt(s.end_time)}</small></div>`).join('')
+      : '<p class="empty">Koi booking nahi, sab slots free hain.</p>';
+  } catch (e) {}
+}
+$('resourceId').onchange = showSlots;
+$('bookForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const body = {
+    user_id: +$('userId').value, resource_id: +$('resourceId').value,
+    title: $('title').value.trim(), purpose: $('purpose').value.trim(),
+    start_time: $('startTime').value.replace('T', ' ') + ':00',
+    end_time: $('endTime').value.replace('T', ' ') + ':00'
+  };
+  try {
+    const r = await api('/bookings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    toast(`Booking #${r.booking_id} submit ho gayi.`);
+    $('bookForm').reset(); showSlots();
+  } catch (err) { toast(err.message, 'e'); }
+};
+
+// ---- manage ----
+async function loadBookings() {
+  const q = new URLSearchParams();
+  if ($('bStatus').value) q.set('status', $('bStatus').value);
+  if ($('bUser').value) q.set('user_id', $('bUser').value);
+  try {
+    const { data } = await api('/bookings?' + q);
+    $('bkBody').innerHTML = data.length ? data.map(b => `<tr>
+      <td>${b.booking_id}</td><td><b>${esc(b.title)}</b></td><td>${b.user_id}</td><td>${esc(b.resource_name)}</td>
+      <td>${fmt(b.start_time)}</td><td>${fmt(b.end_time)}</td>
+      <td><span class="badge ${b.status}">${b.status}</span></td>
+      <td>${b.status === 'Pending' ? `<button class="btn sm ok" onclick="setStatus(${b.booking_id},'Approved')">Approve</button>
+        <button class="btn sm bad" onclick="setStatus(${b.booking_id},'Rejected')">Reject</button>` : ''}
+        ${['Pending', 'Approved'].includes(b.status) ? `<button class="btn sm ghost" onclick="setStatus(${b.booking_id},'Cancelled')">Cancel</button>` : ''}</td></tr>`).join('')
+      : '<tr><td colspan="8" class="empty">Koi booking nahi mili.</td></tr>';
+  } catch (e) { $('bkBody').innerHTML = `<tr><td colspan="8" class="empty">${esc(e.message)}</td></tr>`; }
+}
+$('bGo').onclick = loadBookings;
+async function setStatus(id, status) {
+  try {
+    await api(`/bookings/${id}/status`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
+    toast(`Booking #${id} ${status} ho gayi.`); loadBookings();
+  } catch (e) { toast(e.message, 'e'); }
+}
+
+loadDashboard();
+</script>
+</body>
+</html>
