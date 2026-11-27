@@ -77,9 +77,22 @@ npm install
 npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Express serves the
-dashboard from `app/index.html` and the API from the same origin. Stop the
-server with **Ctrl+C**.
+Open [http://localhost:3000](http://localhost:3000). `npm start` builds the
+React frontend into `app/dist`, then Express serves that frontend and the API
+from the same origin. Stop the server with **Ctrl+C**.
+
+For frontend development with Vite hot reload, open two terminals in `app`:
+
+```powershell
+npm run server
+```
+
+```powershell
+npm run dev
+```
+
+Then open [http://127.0.0.1:5173](http://127.0.0.1:5173). Vite proxies `/api`
+requests to the Express server on port 3000.
 
 ## 3. MongoDB extension
 
@@ -88,16 +101,17 @@ reports and telemetry. When MongoDB is unavailable, the dashboard's booking
 and resource features remain usable; maintenance-report endpoints return a
 service-unavailable response.
 
-To run the standalone CRUD and aggregation demonstration from the repository
-root:
+To populate the MongoDB collections from the repository root:
 
 ```powershell
-mongosh .\nosql\mongo_demo.js
+node .\nosql\mongo_demo.js
 ```
 
-**Destructive demo behavior:** the script drops and recreates
-`smart_campus_nosql.maintenance_reports` before inserting its 15 example
-documents. Do not run it against a collection containing data you need.
+The script reads `app/.env`, uses the same `MONGO_URI` and `MONGO_DB` settings
+as the API, and replaces the documents in `maintenance_reports` and `equipment`
+with the 15 inspection reports and 25 seeded campus resources. It preserves the
+collections and indexes while clearing their documents with `deleteMany({})`.
+Do not run it if those two collections contain documents you need to keep.
 
 ## API overview
 
@@ -122,7 +136,8 @@ deployment.
 - Approval procedure, utilization function, seven analytical queries, view,
   and index benchmark: `database/04_queries_and_functions.sql`
 - MongoDB CRUD and aggregation: `nosql/mongo_demo.js`
-- Browser app and API: `app/index.html` and `app/server.js`
+- React browser app: `app/src/main.jsx`, `app/src/styles.css`, and `app/index.html`
+- Express API: `app/server.js`
 - Capstone report and evidence: `docs/FINAL_PROJECT_REPORT.md` and `screenshots/`
 
 The report distinguishes requirements and conceptual modeling from what is

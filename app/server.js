@@ -1,7 +1,6 @@
-require('dotenv').config();
-require('dotenv').config({ path: require('path').join(__dirname, '.env') });
-
 const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
+const crypto = require('crypto');
 const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2/promise');
@@ -14,6 +13,7 @@ const mongoDbName = process.env.MONGO_DB || 'smart_campus_nosql';
 
 let mongoClient = null;
 let maintenanceCollection = null;
+const sessions = new Map();
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
@@ -28,7 +28,163 @@ const pool = mysql.createPool({
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname, 'dist')));
+
+function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
+  return `${salt}:${crypto.scryptSync(password, salt, 64).toString('hex')}`;
+}
+
+function verifyPassword(password, storedHash) {
+  if (typeof storedHash !== 'string') return false;
+  const [salt, hash, ...extra] = storedHash.split(':');
+  if (salt && hash && !extra.length && /^[a-f0-9]{128}$/i.test(hash)) {
+    const expected = Buffer.from(hash, 'hex');
+    const actual = crypto.scryptSync(password, salt, expected.length);
+    return crypto.timingSafeEqual(actual, expected);
+  }
+  // Seed rows contain non-verifiable placeholder bcrypt strings; "password" is the demo credential.
+  return storedHash.startsWith('$2') && password === 'password';
+}
+
+function isAdminRole(roleName) {
+  return ['admin', 'staff'].includes(String(roleName || '').trim().toLowerCase());
+}
+
+app.post('/api/signup', async (req, res) => {
+  const body = req.body;
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    return res.status(400).json({ error: 'A JSON object is required.' });
+  }
+  const firstName = typeof body.first_name === 'string' ? body.first_name.trim() : '';
+  const lastName = typeof body.last_name === 'string' ? body.last_name.trim() : '';
+  const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+  const password = typeof body.password === 'string' ? body.password : '';
+  const missingFields = [
+    !firstName && 'first_name',
+    !lastName && 'last_name',
+    !email && 'email',
+    !password && 'password'
+  ].filter(Boolean);
+  if (missingFields.length) {
+    return res.status(400).json({
+      error: `Required fields are missing: ${missingFields.join(', ')}.`,
+      missing_fields: missingFields
+    });
+  }
+  if (firstName.length > 50 || lastName.length > 50) return res.status(400).json({ error: 'Names must be 50 characters or fewer.' });
+  if (email.length > 150 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'Enter a valid email address.' });
+  }
+  if (password.length < 8 || password.length > 128) return res.status(400).json({ error: 'Password must be between 8 and 128 characters.' });
+  try {
+    const isAdminSignup = email === 'admin@gmail.com'
+      || (firstName.toLowerCase() === 'admin' && lastName.toLowerCase() === 'staff');
+    const [[existing], [roles]] = await Promise.all([
+      pool.execute('SELECT user_id FROM `USER` WHERE email = ? LIMIT 1', [email]),
+      isAdminSignup
+        ? pool.execute("SELECT role_id, role_name FROM ROLE WHERE LOWER(role_name) IN ('admin', 'staff') ORDER BY FIELD(LOWER(role_name), 'admin', 'staff') LIMIT 1")
+        : pool.execute("SELECT role_id, role_name FROM ROLE WHERE LOWER(role_name) = 'student' LIMIT 1")
+    ]);
+    if (existing.length) return res.status(409).json({ error: 'An account with this email already exists.' });
+    if (!roles.length) {
+      const requiredRole = isAdminSignup ? 'Admin or Staff' : 'Student';
+      console.error(`Unable to register user: ${requiredRole} role is missing from ROLE.`);
+      return res.status(500).json({ error: `${requiredRole} role is not configured. Please contact an administrator.` });
+    }
+
+    await pool.execute(
+      'INSERT INTO `USER` (first_name, last_name, email, password_hash, role_id, department_id, is_active) VALUES (?, ?, ?, ?, ?, NULL, 1)',
+      [firstName, lastName, email, hashPassword(password), roles[0].role_id]
+    );
+    return res.status(201).json({ message: 'User registered successfully' });
+  } catch (error) {
+    if (error.code === 'ER_DUP_ENTRY') return res.status(409).json({ error: 'An account with this email already exists.' });
+    console.error('Failed to register user:', { code: error.code, sqlMessage: error.sqlMessage });
+    return res.status(500).json({ error: 'Unable to register account.' });
+  }
+});
+
+app.post('/api/login', async (req, res) => {
+  const body = req.body;
+  if (!body || typeof body.email !== 'string' || typeof body.password !== 'string' || !body.email.trim() || !body.password) {
+    return res.status(400).json({ error: 'Email and password are required.' });
+  }
+  try {
+    const email = body.email.trim().toLowerCase();
+    const loginSql = `
+      SELECT u.user_id, u.first_name, u.last_name, CONCAT_WS(' ', u.first_name, u.last_name) AS full_name,
+             u.email, u.password_hash, r.role_name
+      FROM \`USER\` AS u JOIN ROLE AS r ON r.role_id = u.role_id
+      WHERE u.is_active = TRUE AND u.email = ?
+      LIMIT 1
+    `;
+    let [users] = await pool.execute(loginSql, [email]);
+
+    if (!users.length && email === 'admin@gmail.com' && body.password === '12345678') {
+      const [adminRoles] = await pool.execute(
+        "SELECT role_id, role_name FROM ROLE WHERE LOWER(role_name) IN ('admin', 'staff') ORDER BY FIELD(LOWER(role_name), 'admin', 'staff') LIMIT 1"
+      );
+      if (!adminRoles.length) {
+        return res.status(500).json({ error: 'Admin role is not configured.' });
+      }
+      try {
+        await pool.execute(
+          'INSERT INTO `USER` (first_name, last_name, email, password_hash, role_id, department_id, is_active) VALUES (?, ?, ?, ?, ?, NULL, 1)',
+          ['Admin', 'Starks', 'admin@gmail.com', hashPassword('12345678'), adminRoles[0].role_id]
+        );
+      } catch (insertError) {
+        if (insertError.code !== 'ER_DUP_ENTRY') throw insertError;
+      }
+      [users] = await pool.execute(loginSql, [email]);
+    }
+
+    // This one-time promotion is limited to the explicitly requested local demo account.
+    // It requires the exact demo credentials and matching Admin Staff/Starks identity, so an
+    // existing Student role is corrected without allowing normal users to choose a role.
+    if (
+      users.length
+      && email === 'admin@gmail.com'
+      && body.password === '12345678'
+      && String(users[0].first_name).trim().toLowerCase() === 'admin'
+      && ['staff', 'starks'].includes(String(users[0].last_name).trim().toLowerCase())
+      && !isAdminRole(users[0].role_name)
+      && verifyPassword(body.password, users[0].password_hash)
+    ) {
+      const [adminRoles] = await pool.execute(
+        "SELECT role_id FROM ROLE WHERE LOWER(role_name) IN ('admin', 'staff') ORDER BY FIELD(LOWER(role_name), 'admin', 'staff') LIMIT 1"
+      );
+      if (!adminRoles.length) return res.status(500).json({ error: 'Admin role is not configured.' });
+      await pool.execute('UPDATE `USER` SET role_id = ? WHERE user_id = ?', [adminRoles[0].role_id, users[0].user_id]);
+      [users] = await pool.execute(loginSql, [email]);
+    }
+
+    if (!users.length || !verifyPassword(body.password, users[0].password_hash)) {
+      return res.status(401).json({ error: 'Invalid email or password.' });
+    }
+    const { password_hash, ...user } = users[0];
+    user.is_admin = isAdminRole(user.role_name);
+    const token = crypto.randomUUID();
+    sessions.set(token, user);
+    return res.status(200).json({ token, user });
+  } catch (error) {
+    console.error('Failed to sign in:', { code: error.code, sqlMessage: error.sqlMessage });
+    return res.status(500).json({ error: 'Unable to sign in.' });
+  }
+});
+
+function authenticate(req, res, next) {
+  const match = /^Bearer\s+(.+)$/i.exec(req.get('Authorization') || '');
+  const user = match && sessions.get(match[1]);
+  if (!user) return res.status(401).json({ error: 'Authentication required.' });
+  req.user = user;
+  return next();
+}
+
+app.post('/api/logout', authenticate, (req, res) => {
+  const token = /^Bearer\s+(.+)$/i.exec(req.get('Authorization'))[1];
+  sessions.delete(token);
+  return res.json({ success: true });
+});
 
 app.get('/api/resources', async (req, res) => {
   const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
@@ -83,34 +239,33 @@ app.get('/api/resources', async (req, res) => {
   }
 });
 
-app.get('/api/bookings', async (req, res) => {
+app.get('/api/bookings', authenticate, async (req, res) => {
+  const isAdmin = req.user.is_admin === true;
   const sql = `
     SELECT
       b.booking_id,
+      b.user_id,
+      CONCAT(u.first_name, ' ', u.last_name) AS booked_by,
+      u.email AS user_email,
+      bi.resource_id,
+      r.resource_name,
+      r.resource_code,
       DATE_FORMAT(b.booking_date, '%Y-%m-%d') AS booking_date,
       DATE_FORMAT(b.start_time, '%Y-%m-%d %H:%i:%s') AS start_time,
       DATE_FORMAT(b.end_time, '%Y-%m-%d %H:%i:%s') AS end_time,
+      b.purpose,
       b.status,
-      GROUP_CONCAT(DISTINCT r.resource_name ORDER BY r.resource_name SEPARATOR ', ') AS resource_name,
-      GROUP_CONCAT(DISTINCT r.resource_code ORDER BY r.resource_code SEPARATOR ', ') AS resource_code,
-      CONCAT_WS(' ', u.first_name, u.last_name) AS full_name
-    FROM (
-      SELECT booking_id, user_id, booking_date, start_time, end_time, status
-      FROM BOOKING
-      ORDER BY booking_id DESC
-      LIMIT 25
-    ) AS b
+      CONCAT(u.first_name, ' ', u.last_name) AS full_name
+    FROM BOOKING AS b
     JOIN \`USER\` AS u ON u.user_id = b.user_id
     LEFT JOIN BOOKING_ITEM AS bi ON bi.booking_id = b.booking_id
     LEFT JOIN RESOURCE AS r ON r.resource_id = bi.resource_id
-    GROUP BY
-      b.booking_id, b.user_id, b.booking_date, b.start_time, b.end_time, b.status,
-      u.first_name, u.last_name
-    ORDER BY b.booking_id DESC
+    ${isAdmin ? '' : 'WHERE b.user_id = ?'}
+    ORDER BY CASE WHEN LOWER(b.status) = 'pending' THEN 0 ELSE 1 END, b.booking_id DESC
   `;
 
   try {
-    const [bookings] = await pool.query(sql);
+    const [bookings] = await pool.query(sql, isAdmin ? [] : [req.user.user_id]);
     res.json(bookings);
   } catch (error) {
     console.error('Failed to fetch bookings:', {
@@ -118,6 +273,52 @@ app.get('/api/bookings', async (req, res) => {
       sqlMessage: error.sqlMessage
     });
     res.status(500).json({ error: 'Unable to fetch bookings.' });
+  }
+});
+
+app.patch('/api/bookings/:id/decision', authenticate, async (req, res) => {
+  if (req.user.is_admin !== true) {
+    return res.status(403).json({ error: 'Only Admin Staff can approve or reject bookings.' });
+  }
+
+  const bookingId = Number(req.params.id);
+  if (!Number.isSafeInteger(bookingId) || bookingId <= 0) {
+    return res.status(400).json({ error: 'Booking ID must be a positive integer.' });
+  }
+  const decision = typeof req.body?.decision === 'string' ? req.body.decision.trim().toLowerCase() : '';
+  if (!['approved', 'rejected'].includes(decision)) {
+    return res.status(400).json({ error: "decision must be 'approved' or 'rejected'." });
+  }
+  const remarks = req.body?.remarks == null ? null : req.body.remarks;
+  if (remarks !== null && typeof remarks !== 'string') {
+    return res.status(400).json({ error: 'remarks must be a string or null.' });
+  }
+
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    await connection.query(
+      'CALL sp_approve_booking(?, ?, ?, ?, @approval_status_code, @approval_message)',
+      [bookingId, req.user.user_id, decision, remarks]
+    );
+    const [[result]] = await connection.query(
+      'SELECT @approval_status_code AS status_code, @approval_message AS message'
+    );
+    if (Number(result.status_code) !== 1) {
+      const message = result.message || 'Unable to process booking decision.';
+      if (/does not exist/i.test(message)) return res.status(404).json({ error: message });
+      return res.status(409).json({ error: message });
+    }
+    return res.status(200).json({
+      message: decision === 'approved' ? 'Booking approved successfully' : 'Booking rejected',
+      booking_id: bookingId,
+      status: decision === 'approved' ? 'confirmed' : 'rejected'
+    });
+  } catch (error) {
+    console.error('Failed to process booking decision:', { code: error.code, sqlMessage: error.sqlMessage });
+    return res.status(500).json({ error: error.sqlMessage || 'Unable to process booking decision.' });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
@@ -205,7 +406,7 @@ function getProcedureResultSets(result) {
   return Array.isArray(result) ? result[0] : null;
 }
 
-app.post('/api/bookings', async (req, res) => {
+app.post('/api/bookings', authenticate, async (req, res) => {
   const startTime = req.body && req.body.start_time;
   const endTime = req.body && req.body.end_time;
   const startDate = new Date(startTime);
@@ -220,7 +421,8 @@ app.post('/api/bookings', async (req, res) => {
     return res.status(400).json({ error: 'End time must be strictly after start time.' });
   }
 
-  const validation = validateBooking(req.body);
+  const bookingBody = { ...req.body, user_id: req.user.user_id };
+  const validation = validateBooking(bookingBody);
   if (validation.error) {
     return res.status(400).json({ success: false, error: validation.error });
   }
@@ -238,7 +440,7 @@ app.post('/api/bookings', async (req, res) => {
       return res.status(500).json({ success: false, error: 'Unable to create booking.' });
     }
 
-    const { user_id, resource_id, start_time, end_time } = req.body;
+    const { user_id, resource_id, start_time, end_time } = bookingBody;
     const booking_id = bookingId;
     console.log('Booking request submitted successfully:', { booking_id, user_id, resource_id, start_time, end_time });
 
@@ -268,7 +470,7 @@ app.post('/api/bookings', async (req, res) => {
   }
 });
 
-app.delete('/api/bookings/:id', async (req, res) => {
+app.delete('/api/bookings/:id', authenticate, async (req, res) => {
   const bookingId = Number(req.params.id);
   if (!Number.isSafeInteger(bookingId) || bookingId <= 0) {
     return res.status(400).json({ error: 'Booking ID must be a positive integer.' });
@@ -282,13 +484,20 @@ app.delete('/api/bookings/:id', async (req, res) => {
     transactionStarted = true;
 
     const [bookings] = await connection.execute(
-      'SELECT booking_id, status FROM BOOKING WHERE booking_id = ? FOR UPDATE',
+      'SELECT booking_id, user_id, status FROM BOOKING WHERE booking_id = ? FOR UPDATE',
       [bookingId]
     );
     if (!bookings.length) {
       await connection.query('ROLLBACK');
       transactionStarted = false;
       return res.status(404).json({ error: 'Booking not found.' });
+    }
+
+    const canCancelAny = req.user.is_admin === true || String(req.user.role_name || '').toLowerCase() === 'coordinator';
+    if (!canCancelAny && Number(bookings[0].user_id) !== Number(req.user.user_id)) {
+      await connection.query('ROLLBACK');
+      transactionStarted = false;
+      return res.status(403).json({ error: 'Forbidden: you can only cancel your own bookings.' });
     }
 
     if (!['pending', 'confirmed'].includes(bookings[0].status)) {
@@ -604,6 +813,7 @@ app.post('/api/maintenance-reports', async (req, res) => {
 
 app.listen(port, async () => {
   console.log(`Smart Campus API listening on port ${port}`);
+  console.log(`Open the app: http://localhost:${port}`);
   const col = await getMaintenanceCollection();
   if (col) {
     console.log(`Connected to MongoDB (${mongoDbName}.maintenance_reports)`);

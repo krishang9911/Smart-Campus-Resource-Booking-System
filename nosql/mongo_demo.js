@@ -1,27 +1,40 @@
 /**
- * ============================================================================
- * Smart Campus Resource & Lab Booking System (Version 2.0)
- * File: nosql/mongo_demo.js
- * Description: MongoDB NoSQL Extension for Semi-Structured Maintenance & Inspection Logs
- * Author: Person B (Teammate B) - Analytics & NoSQL Specialist
- * 
- * Execution:
- *   mongosh nosql/mongo_demo.js
- *   OR in MongoDB Compass / mongosh:
- *   use smart_campus_nosql;
- *   load("nosql/mongo_demo.js");
- * ============================================================================
+ * Smart Campus MongoDB setup. Run from the repository root with:
+ *   node nosql/mongo_demo.js
+ * It loads app/.env, then uses MONGO_URI / MONGO_DB just like app/server.js.
  */
+const path = require('node:path');
+const { createRequire } = require('node:module');
+const appRequire = createRequire(path.join(__dirname, '..', 'app', 'package.json'));
+const appEnvPath = path.join(__dirname, '..', 'app', '.env');
 
-// Switch / create database
-db = db.getSiblingDB("smart_campus_nosql");
+try {
+  appRequire('dotenv').config({ path: appEnvPath });
+} catch (error) {
+  if (error.code !== 'MODULE_NOT_FOUND') throw error;
+}
+
+const { MongoClient } = appRequire('mongodb');
+const mongoUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017';
+const mongoDbName = process.env.MONGO_DB || 'smart_campus_nosql';
+const print = (value = '') => console.log(value);
+const printjson = (value) => console.dir(value, { depth: null, colors: false });
+
+async function main() {
+  const client = new MongoClient(mongoUri, { serverSelectionTimeoutMS: 8000 });
+  try {
+    await client.connect();
+    const db = client.db(mongoDbName);
+    const maintenance = db.collection('maintenance_reports');
+    const equipment = db.collection('equipment');
+    print(`Connected to MongoDB database: ${mongoDbName}`);
 
 print("============================================================================");
-print("1. INITIALIZING & CLEANING UP COLLECTIONS");
+print("1. INITIALIZING & CLEANING COLLECTIONS");
 print("============================================================================");
 
-db.maintenance_reports.drop();
-print("Dropped existing 'maintenance_reports' collection.");
+const maintenanceDelete = await maintenance.deleteMany({});
+print(`Cleared maintenance_reports (${maintenanceDelete.deletedCount} prior documents).`);
 
 print("\n============================================================================");
 print("2. INSERTING 15 SEMI-STRUCTURED MAINTENANCE & INSPECTION DOCUMENTS");
@@ -490,16 +503,78 @@ const maintenanceDocuments = [
   }
 ];
 
-const insertResult = db.maintenance_reports.insertMany(maintenanceDocuments);
+const inspectionIssues = {
+  1: 'Cooling loop, GPU thermals, and PCIe link inspection',
+  2: 'GPU firmware and InfiniBand link inspection',
+  4: 'GPU thermal throttling and riser contact faults',
+  5: 'Print core wear and build plate calibration',
+  6: 'SLA laser output and resin tank clarity inspection',
+  7: 'Composite filament feed and nozzle alignment',
+  8: 'Oscilloscope reference clock calibration',
+  10: 'Channel 2 BNC contact resistance inspection',
+  11: 'UR5e joint lubrication and safety stop check',
+  12: 'KUKA Axis 4 gearbox backlash inspection',
+  14: 'Barco projector intake filter and lens calibration',
+  15: 'Cinema projector chiller relay and power stability check',
+  17: 'VR headset battery health and controller tracking check',
+  20: 'PCB mill spindle runout and vacuum table inspection',
+  23: 'Drone propulsion, RTK positioning, and flight safety check'
+};
+
+maintenanceDocuments.forEach((report) => {
+  report.resource_name = report.equipment_name;
+  report.issue_summary = inspectionIssues[report.resource_id] || 'Scheduled equipment inspection';
+  report.created_at = report.inspection_date;
+  report.telemetry = report.sensor_telemetry;
+});
+
+const insertResult = await maintenance.insertMany(maintenanceDocuments);
 print(`Successfully inserted ${insertResult.insertedIds ? Object.keys(insertResult.insertedIds).length : 15} documents into 'maintenance_reports'.`);
 
+// Resource inventory snapshot mirrors the seeded MySQL RESOURCE records.
+const equipmentDocuments = [
+  { resource_id: 1, resource_code: 'GPU-DGX-01', resource_name: 'NVIDIA DGX Station A100-01', resource_type_id: 1, category: 'GPU Computing Server', location_id: 1, capacity: 1, status: 'available', description: 'Primary multi-GPU workstation for deep neural network model training' },
+  { resource_id: 2, resource_code: 'GPU-DGX-02', resource_name: 'NVIDIA DGX Station A100-02', resource_type_id: 1, category: 'GPU Computing Server', location_id: 1, capacity: 1, status: 'available', description: 'Secondary multi-GPU workstation for distributed inference and vision benchmarks' },
+  { resource_id: 3, resource_code: 'GPU-RTX-01', resource_name: 'RTX 4090 Deep Learning Rig 1', resource_type_id: 1, category: 'GPU Computing Server', location_id: 2, capacity: 1, status: 'available', description: 'Custom liquid-cooled workstation with dual RTX 4090 GPUs' },
+  { resource_id: 4, resource_code: 'GPU-RTX-02', resource_name: 'RTX 4090 Deep Learning Rig 2', resource_type_id: 1, category: 'GPU Computing Server', location_id: 2, capacity: 1, status: 'under_maintenance', description: 'Thermal maintenance and PCIe bus riser service' },
+  { resource_id: 5, resource_code: 'PRN-3D-01', resource_name: 'Ultimaker S5 Pro 3D Printer', resource_type_id: 2, category: '3D Printer & Rapid Prototyper', location_id: 12, capacity: 1, status: 'available', description: 'Dual-extrusion industrial grade FDM 3D printer with composite core' },
+  { resource_id: 6, resource_code: 'PRN-3D-02', resource_name: 'Formlabs Form 3+ SLA Printer', resource_type_id: 2, category: '3D Printer & Rapid Prototyper', location_id: 12, capacity: 1, status: 'available', description: 'High-precision stereolithography resin 3D printing system' },
+  { resource_id: 7, resource_code: 'PRN-3D-03', resource_name: 'Markforged Onyx Pro Carbon Printer', resource_type_id: 2, category: '3D Printer & Rapid Prototyper', location_id: 6, capacity: 1, status: 'available', description: 'Continuous carbon fiber reinforced composite rapid prototyper' },
+  { resource_id: 8, resource_code: 'SCP-MSO-01', resource_name: 'Tektronix MSO 1GHz Scope Bench A', resource_type_id: 3, category: 'High-End Digital Oscilloscope', location_id: 4, capacity: 2, status: 'available', description: '4-Channel 1GHz digital phosphor oscilloscope with logic analyzer probes' },
+  { resource_id: 9, resource_code: 'SCP-MSO-02', resource_name: 'Tektronix MSO 1GHz Scope Bench B', resource_type_id: 3, category: 'High-End Digital Oscilloscope', location_id: 4, capacity: 2, status: 'available', description: 'Bench B mixed-signal high-frequency waveform capture station' },
+  { resource_id: 10, resource_code: 'SCP-KEY-01', resource_name: 'Keysight Infiniium 4-CH Scope', resource_type_id: 3, category: 'High-End Digital Oscilloscope', location_id: 5, capacity: 2, status: 'available', description: 'VLSI waveform timing jitter and eye-diagram analyzer' },
+  { resource_id: 11, resource_code: 'ROB-UR5-01', resource_name: 'Universal Robots UR5e Cobot Arm', resource_type_id: 4, category: 'Robotic Arm Kit', location_id: 6, capacity: 4, status: 'available', description: '6-Axis collaborative robot with built-in force torque sensor' },
+  { resource_id: 12, resource_code: 'ROB-KUK-01', resource_name: 'KUKA KR4 Agilus Robotic Arm', resource_type_id: 4, category: 'Robotic Arm Kit', location_id: 6, capacity: 4, status: 'under_maintenance', description: 'High-speed industrial manipulator under harmonic drive service' },
+  { resource_id: 13, resource_code: 'ROB-DOB-01', resource_name: 'DOBOT Magician Educational Robot', resource_type_id: 4, category: 'Robotic Arm Kit', location_id: 12, capacity: 2, status: 'available', description: 'Desktop robotic arm for kinematics and 3D pen dispensing' },
+  { resource_id: 14, resource_code: 'AV-BAR-01', resource_name: 'Barco 4K Laser Projection Alpha', resource_type_id: 5, category: 'Smart Conference Audio/Video', location_id: 3, capacity: 120, status: 'available', description: 'Dual laser 4K projection setup with surround audio for colloquiums' },
+  { resource_id: 15, resource_code: 'AV-CHR-01', resource_name: 'Christie Digital Cinema Projector', resource_type_id: 5, category: 'Smart Conference Audio/Video', location_id: 11, capacity: 350, status: 'available', description: 'Auditorium main stage digital laser projection system' },
+  { resource_id: 16, resource_code: 'AV-POL-01', resource_name: 'Polycom Trio Conference AV Setup', resource_type_id: 5, category: 'Smart Conference Audio/Video', location_id: 3, capacity: 20, status: 'available', description: 'Smart conference table with beamforming 360 audio mic array' },
+  { resource_id: 17, resource_code: 'VR-QST-01', resource_name: 'Meta Quest Pro Enterprise Rig 01', resource_type_id: 6, category: 'VR / AR Headset Station', location_id: 2, capacity: 2, status: 'available', description: 'High-fidelity spatial computing and eye-tracking development suite' },
+  { resource_id: 18, resource_code: 'VR-QST-02', resource_name: 'Meta Quest Pro Enterprise Rig 02', resource_type_id: 6, category: 'VR / AR Headset Station', location_id: 2, capacity: 2, status: 'available', description: 'Station 2 interactive virtual environment testing setup' },
+  { resource_id: 19, resource_code: 'VR-HTC-01', resource_name: 'HTC Vive Focus 3 VR Workspace', resource_type_id: 6, category: 'VR / AR Headset Station', location_id: 12, capacity: 2, status: 'available', description: 'Standalone enterprise VR station with sub-millimeter room scale tracking' },
+  { resource_id: 20, resource_code: 'CNC-LPK-01', resource_name: 'LPKF ProtoMat S64 PCB Milling Unit', resource_type_id: 7, category: 'PCB Prototyping Milling Machine', location_id: 5, capacity: 1, status: 'available', description: 'Automated tool-change PCB rapid trace router for RF circuits' },
+  { resource_id: 21, resource_code: 'CNC-VOL-01', resource_name: 'Voltera V-One PCB Electronics Printer', resource_type_id: 7, category: 'PCB Prototyping Milling Machine', location_id: 5, capacity: 1, status: 'retired', description: 'Conductive ink printer retired due to obsolete head architecture' },
+  { resource_id: 22, resource_code: 'CNC-BUN-01', resource_name: 'Bungard High-Precision CNC Mill', resource_type_id: 7, category: 'PCB Prototyping Milling Machine', location_id: 12, capacity: 1, status: 'available', description: 'Heavy-duty substrate drilling and routing bench' },
+  { resource_id: 23, resource_code: 'UAV-DJI-01', resource_name: 'DJI Matrice 300 RTK Flight Rig', resource_type_id: 8, category: 'Drone / UAV Development Rig', location_id: 6, capacity: 4, status: 'available', description: 'Indoor navigation testbed with RTK positioning and stereo vision cage' },
+  { resource_id: 24, resource_code: 'UAV-PX4-01', resource_name: 'Holybro PX4 Autonomous Drone Rig', resource_type_id: 8, category: 'Drone / UAV Development Rig', location_id: 12, capacity: 2, status: 'available', description: 'Open-source flight control quadcopter with optical flow guidance' },
+  { resource_id: 25, resource_code: 'UAV-CRZ-01', resource_name: 'Crazyflie Swarm Robotics Testbed', resource_type_id: 8, category: 'Drone / UAV Development Rig', location_id: 12, capacity: 6, status: 'available', description: 'Micro-quadcopter swarm localization testbed with ultra-wideband anchors' }
+].map((item) => ({ ...item, equipment_name: item.resource_name, source_table: 'RESOURCE', synced_at: new Date() }));
+
+const equipmentDelete = await equipment.deleteMany({});
+print(`Cleared equipment (${equipmentDelete.deletedCount} prior documents).`);
+await equipment.createIndex({ resource_id: 1 }, { unique: true });
+await equipment.createIndex({ resource_code: 1 }, { unique: true });
+const equipmentInsert = await equipment.insertMany(equipmentDocuments);
+await maintenance.createIndex({ report_id: 1 }, { unique: true });
+print(`Inserted ${Object.keys(equipmentInsert.insertedIds).length} equipment documents.`);
+
 print("\n============================================================================");
-print("3. CRUD OPERATIONS DEMONSTRATION");
+print("3. READ AND AGGREGATION VERIFICATION");
 print("============================================================================");
 
 // --- READ 1: Active / Critical Incidents ---
 print("\n>>> READ 1: Active High or Critical severity maintenance reports (In_Progress / Open):");
-const activeHighSeverity = db.maintenance_reports.find(
+const activeHighSeverity = await maintenance.find(
   {
     severity: { $in: ["High", "Critical"] },
     status: { $in: ["In_Progress", "Open"] }
@@ -510,44 +585,11 @@ printjson(activeHighSeverity);
 
 // --- READ 2: Expensive Reports (> $200) ---
 print("\n>>> READ 2: High-Expense Reports (total_cost_usd > 200.00):");
-const highCostReports = db.maintenance_reports.find(
+const highCostReports = await maintenance.find(
   { total_cost_usd: { $gt: 200.00 } },
   { report_id: 1, resource_code: 1, equipment_name: 1, category: 1, total_cost_usd: 1, parts_replaced: 1 }
 ).toArray();
 printjson(highCostReports);
-
-// --- UPDATE ---
-print("\n>>> UPDATE: Transitioning MR-2026-002 to 'Completed' and adding stress benchmark:");
-const updateResult = db.maintenance_reports.updateOne(
-  { report_id: "MR-2026-002" },
-  {
-    $set: {
-      status: "Completed",
-      completed_at: new Date("2026-11-22T18:00:00Z"),
-      "sensor_telemetry.peak_gpu_temp_celsius": 68.5,
-      "sensor_telemetry.thermal_throttling_events": 0
-    },
-    $push: {
-      checklist: {
-        check_item: "Post-repair 4-hour FurMark GPU stress benchmark",
-        passed: true,
-        notes: "Passed stress benchmark with zero thermal throttling."
-      }
-    }
-  }
-);
-print(`Matched: ${updateResult.matchedCount}, Modified: ${updateResult.modifiedCount}`);
-
-// --- DELETE ---
-print("\n>>> DELETE: Temporary test report removal:");
-db.maintenance_reports.insertOne({
-  report_id: "TEMP-DEL-999",
-  equipment_name: "Obsolete Test Breadboard",
-  status: "Retired",
-  total_cost_usd: 0.00
-});
-const delResult = db.maintenance_reports.deleteOne({ report_id: "TEMP-DEL-999" });
-print(`Deleted temporary document 'TEMP-DEL-999'. Acknowledged: ${delResult.acknowledged}, DeletedCount: ${delResult.deletedCount}`);
 
 print("\n============================================================================");
 print("4. MONGODB AGGREGATION PIPELINE ($group): Category Maintenance Cost & Downtime Analysis");
@@ -591,10 +633,23 @@ const categoryAnalysisPipeline = [
   }
 ];
 
-const aggregationResults = db.maintenance_reports.aggregate(categoryAnalysisPipeline).toArray();
+const aggregationResults = await maintenance.aggregate(categoryAnalysisPipeline).toArray();
 print(">>> AGGREGATION OUTPUT ($group by category):");
 printjson(aggregationResults);
 
 print("\n============================================================================");
-print("NOSQL SCRIPT EXECUTION COMPLETED SUCCESSFULLY");
+print("NOSQL SETUP COMPLETED SUCCESSFULLY");
+print(`maintenance_reports: ${await maintenance.countDocuments({})} documents`);
+print(`equipment: ${await equipment.countDocuments({})} documents`);
+print('Equipment resource codes:');
+printjson(await equipment.find({}, { projection: { _id: 0, resource_code: 1 } }).sort({ resource_id: 1 }).toArray());
 print("============================================================================");
+  } finally {
+    await client.close();
+  }
+}
+
+main().catch((error) => {
+  console.error('MongoDB setup failed:', error.message);
+  process.exitCode = 1;
+});
