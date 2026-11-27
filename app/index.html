@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Smart Campus · Resource &amp; Telemetry Console</title>
+  <title>Smart Campus · Resource Booking</title>
   <style>
     :root {
       --bg: #f8fafc;
@@ -48,7 +48,6 @@
       --radius-sm: 6px;
       --shadow-xs: 0 1px 2px rgba(9, 9, 11, 0.04);
       --shadow-sm: 0 1px 3px rgba(9, 9, 11, 0.06), 0 1px 2px rgba(9, 9, 11, 0.03);
-      --shadow-modal: 0 20px 50px rgba(9, 9, 11, 0.16);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -171,7 +170,7 @@
     /* 1. Top KPI Strip */
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 14px;
     }
     .kpi-card {
@@ -207,11 +206,6 @@
       background: var(--surface-muted);
       color: var(--text-secondary);
       border: 1px solid var(--border);
-    }
-    .kpi-tag.mongo {
-      background: var(--emerald-bg);
-      color: var(--emerald-text);
-      border-color: var(--emerald-border);
     }
     .kpi-val {
       font-size: 1.75rem;
@@ -557,167 +551,6 @@
     .feed-item.bad { border-left: 3px solid var(--rose-dot); }
     .feed-item.info { border-left: 3px solid var(--indigo); }
 
-    /* MongoDB Maintenance & Telemetry Panel */
-    .agg-strip {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 16px;
-      padding-bottom: 14px;
-      border-bottom: 1px solid var(--border);
-      align-items: center;
-    }
-    .agg-group-label {
-      font-size: 0.72rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--muted);
-      margin-right: 4px;
-    }
-    .agg-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      border: 1px solid var(--border);
-      background: var(--surface-subtle);
-      color: var(--text-secondary);
-    }
-    .agg-pill strong { font-variant-numeric: tabular-nums; color: var(--text); }
-
-    .reports-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-    }
-    .report-card {
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      background: var(--surface-subtle);
-      padding: 14px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      transition: border-color 0.15s, background 0.15s;
-    }
-    .report-card:hover {
-      border-color: var(--border-strong);
-      background: var(--surface);
-    }
-    .report-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 8px;
-    }
-    .report-title {
-      font-weight: 650;
-      font-size: 0.87rem;
-      color: var(--text);
-      line-height: 1.3;
-    }
-    .report-summary {
-      font-size: 0.79rem;
-      color: var(--text-secondary);
-      line-height: 1.4;
-    }
-    .telemetry-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
-    }
-    .t-tag {
-      padding: 2px 7px;
-      border-radius: 5px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 0.71rem;
-      color: var(--text-secondary);
-    }
-    .t-tag b { color: var(--indigo); font-weight: 600; }
-    .checklist-box {
-      border-top: 1px dashed var(--border);
-      padding-top: 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .chk-row {
-      display: flex;
-      align-items: flex-start;
-      gap: 6px;
-      font-size: 0.75rem;
-      color: var(--text-secondary);
-    }
-    .chk-icon {
-      font-weight: 700;
-      flex-shrink: 0;
-      width: 14px;
-    }
-    .chk-icon.pass { color: var(--emerald-text); }
-    .chk-icon.fail { color: var(--rose-text); }
-    .report-foot {
-      margin-top: auto;
-      padding-top: 8px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.74rem;
-      color: var(--muted);
-      gap: 8px;
-    }
-
-    /* Modal */
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(9, 9, 11, 0.45);
-      backdrop-filter: blur(4px);
-      display: none;
-      place-items: center;
-      padding: 20px;
-      z-index: 50;
-    }
-    .modal-backdrop.open { display: grid; }
-    .modal {
-      width: 100%;
-      max-width: 560px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-xl);
-      box-shadow: var(--shadow-modal);
-      overflow: hidden;
-      max-height: 92vh;
-      display: flex;
-      flex-direction: column;
-    }
-    .modal-head {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .modal-head h3 { font-size: 0.96rem; font-weight: 650; }
-    .modal-body {
-      padding: 18px 20px;
-      overflow-y: auto;
-    }
-    .modal-foot {
-      padding: 14px 20px;
-      border-top: 1px solid var(--border);
-      background: var(--surface-subtle);
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-    }
-
     .empty-state {
       text-align: center;
       padding: 28px 16px;
@@ -727,7 +560,6 @@
 
     @media (max-width: 1180px) {
       .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-      .reports-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
     @media (max-width: 980px) {
       .workspace { grid-template-columns: 1fr; }
@@ -736,7 +568,6 @@
     @media (max-width: 640px) {
       .shell, .topbar-inner { padding-left: 16px; padding-right: 16px; }
       .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .reports-grid { grid-template-columns: 1fr; }
       .grid-2 { grid-template-columns: 1fr; }
     }
   </style>
@@ -747,18 +578,14 @@
       <div class="brand">
         <div class="brand-mark">SC</div>
         <div>
-          <div class="brand-title">Smart Campus · Resource &amp; Telemetry Console</div>
-          <div class="brand-sub">ACID MySQL Scheduling &amp; MongoDB Equipment Telemetry</div>
+          <div class="brand-title">Smart Campus · Resource Booking</div>
+          <div class="brand-sub">Search campus resources and manage bookings</div>
         </div>
       </div>
       <div class="nav-right">
         <div id="apiStatus" class="status-pill">
           <span class="dot"></span>
           <span id="apiStatusText">MySQL Connecting...</span>
-        </div>
-        <div id="mongoStatus" class="status-pill">
-          <span class="dot"></span>
-          <span id="mongoStatusText">MongoDB Connecting...</span>
         </div>
       </div>
     </div>
@@ -798,14 +625,6 @@
         </div>
         <div class="kpi-val" id="kpiActiveBookings">0</div>
         <div class="kpi-sub" id="kpiActiveSub">Pending &amp; approved slots</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-top">
-          <span class="kpi-label">Open Maint. Reports</span>
-          <span class="kpi-tag mongo">MongoDB</span>
-        </div>
-        <div class="kpi-val" id="kpiOpenReports">0</div>
-        <div class="kpi-sub" id="kpiReportsSub">Open &amp; in-progress tickets</div>
       </div>
     </section>
 
@@ -921,7 +740,7 @@
           <div class="panel-head">
             <div>
               <h2>Transaction &amp; Audit Feed</h2>
-              <p>Live stream of SQL &amp; NoSQL operations</p>
+              <p>Recent booking activity</p>
             </div>
             <button type="button" class="btn btn-ghost btn-xs" id="clearLogBtn">Clear</button>
           </div>
@@ -965,106 +784,7 @@
       </div>
     </section>
 
-    <!-- 4. MongoDB Maintenance & Telemetry Panel -->
-    <section class="panel">
-      <div class="panel-head">
-        <div>
-          <h2>Maintenance &amp; Telemetry <span class="badge indigo">MongoDB</span></h2>
-          <p>Semi-structured sensor telemetry, technician notes, and inspection checklists (<code>smart_campus_nosql.maintenance_reports</code>)</p>
-        </div>
-        <div class="panel-actions">
-          <button type="button" class="btn btn-ghost btn-xs" id="refreshReportsBtn">Refresh</button>
-          <button type="button" class="btn btn-primary btn-xs" id="openReportModalBtn">+ Log Maintenance Report</button>
-        </div>
-      </div>
-
-      <div class="panel-body">
-        <div id="reportsAlert" class="alert" role="alert" style="margin-top:0; margin-bottom:14px;"></div>
-
-        <div id="aggStrip" class="agg-strip">
-          <span class="agg-group-label">Aggregation Breakdown:</span>
-          <span class="res-meta">Loading MongoDB aggregation pipeline...</span>
-        </div>
-
-        <div id="reportsGrid" class="reports-grid">
-          <div class="empty-state" style="grid-column:1/-1;">Loading maintenance reports...</div>
-        </div>
-      </div>
-    </section>
   </main>
-
-  <!-- Modal: Log New MongoDB Maintenance Report -->
-  <div id="reportModalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="reportModalTitle">
-    <div class="modal">
-      <div class="modal-head">
-        <h3 id="reportModalTitle">Log Equipment Maintenance Report (MongoDB)</h3>
-        <button type="button" class="btn btn-ghost btn-xs" id="closeReportModalBtn">Close</button>
-      </div>
-      <form id="reportForm">
-        <div class="modal-body">
-          <div class="grid-2">
-            <div class="field">
-              <label for="reportResourceSelect">Resource</label>
-              <select id="reportResourceSelect" required></select>
-            </div>
-            <div class="field">
-              <label for="reportTechnician">Technician Name</label>
-              <input type="text" id="reportTechnician" value="Ramesh Yadav" required />
-            </div>
-          </div>
-
-          <div class="field">
-            <label for="reportIssue">Issue Summary</label>
-            <input type="text" id="reportIssue" placeholder="e.g. Thermal sensor spike detected during inference job" required />
-          </div>
-
-          <div class="grid-2">
-            <div class="field">
-              <label for="reportSeverity">Severity</label>
-              <select id="reportSeverity" required>
-                <option value="Low">Low</option>
-                <option value="Medium" selected>Medium</option>
-                <option value="High">High</option>
-                <option value="Critical">Critical</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="reportStatus">Status</label>
-              <select id="reportStatus" required>
-                <option value="Open" selected>Open</option>
-                <option value="In_Progress">In_Progress</option>
-                <option value="Completed">Completed</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="field">
-            <label for="reportTelemetry">
-              <span>Sensor Telemetry (JSON)</span>
-              <span class="mono" style="color:var(--muted);">flexible key-value metrics</span>
-            </label>
-            <textarea id="reportTelemetry" class="mono" rows="2">{"peak_temp_c": 78.4, "fan_rpm": 4200, "voltage_v": 11.95}</textarea>
-          </div>
-
-          <div class="field" style="margin-bottom:0;">
-            <label for="reportChecklist">
-              <span>Inspection Checklist (one item per line)</span>
-              <span class="mono" style="color:var(--muted);">prefix ! for failed check</span>
-            </label>
-            <textarea id="reportChecklist" rows="3">Cooling fan intake airflow check
-Thermal interface inspection
-! Firmware diagnostic self-test</textarea>
-          </div>
-
-          <div id="reportModalAlert" class="alert" role="alert"></div>
-        </div>
-        <div class="modal-foot">
-          <button type="button" class="btn btn-ghost" id="cancelReportModalBtn">Cancel</button>
-          <button type="submit" class="btn btn-primary" id="submitReportBtn">Save Maintenance Report</button>
-        </div>
-      </form>
-    </div>
-  </div>
 
   <script>
     const API_BASE = window.location.port === '3000'
@@ -1075,8 +795,6 @@ Thermal interface inspection
 
     let allResources = [];
     let allBookings = [];
-    let allReports = [];
-    let reportBreakdown = { by_severity: [], by_status: [] };
     let selectedResourceId = null;
     let statusFilterValue = '';
     const logs = [];
@@ -1124,20 +842,6 @@ Thermal interface inspection
       return `<span class="badge bad">${esc(label)}</span>`;
     }
 
-    function renderSeverityBadge(severity) {
-      const s = String(severity || '').trim().toLowerCase();
-      if (s === 'critical' || s === 'high') return `<span class="badge bad">${esc(severity)}</span>`;
-      if (s === 'medium') return `<span class="badge warn">${esc(severity)}</span>`;
-      return `<span class="badge ok">${esc(severity || 'Low')}</span>`;
-    }
-
-    function renderReportStatusBadge(status) {
-      const s = String(status || '').trim().toLowerCase();
-      if (s === 'completed') return '<span class="badge ok">Completed</span>';
-      if (s === 'in_progress') return '<span class="badge warn">In Progress</span>';
-      return `<span class="badge indigo">${esc(status || 'Open')}</span>`;
-    }
-
     function pushLog(entry) {
       logs.unshift({
         ...entry,
@@ -1176,12 +880,6 @@ Thermal interface inspection
       $('kpiActiveBookings').textContent = activeBookings;
       $('kpiActiveSub').textContent = `${allBookings.length} recent bookings loaded`;
 
-      const openReports = allReports.filter((r) => {
-        const s = String(r.status || '').toLowerCase();
-        return s === 'open' || s === 'in_progress';
-      }).length;
-      $('kpiOpenReports').textContent = openReports;
-      $('kpiReportsSub').textContent = `${allReports.length} total documents in MongoDB`;
     }
 
     function updateResourcePreview() {
@@ -1238,14 +936,6 @@ Thermal interface inspection
       }
       updateResourcePreview();
 
-      // Maintenance report modal dropdown (all resources)
-      const currentModalRes = $('reportResourceSelect').value;
-      $('reportResourceSelect').innerHTML = resources.map((r) =>
-        `<option value="${r.resource_id}">#${r.resource_id} · ${esc(r.resource_code || '')} — ${esc(r.resource_name)}</option>`
-      ).join('');
-      if (currentModalRes && resources.some((r) => String(r.resource_id) === String(currentModalRes))) {
-        $('reportResourceSelect').value = currentModalRes;
-      }
     }
 
     function renderResourcesTable() {
@@ -1394,98 +1084,6 @@ Thermal interface inspection
       }
     }
 
-    function renderReportsPanel() {
-      const bySeverity = reportBreakdown.by_severity || [];
-      const byStatus = reportBreakdown.by_status || [];
-
-      if (!bySeverity.length && !byStatus.length) {
-        $('aggStrip').innerHTML = '<span class="agg-group-label">Aggregation Breakdown:</span><span class="res-meta">No summary metrics available.</span>';
-      } else {
-        const sevPills = bySeverity.map((s) =>
-          `<span class="agg-pill">${esc(s.severity)}: <strong>${s.count}</strong></span>`
-        ).join('');
-        const statusPills = byStatus.map((s) =>
-          `<span class="agg-pill">${esc(s.status)}: <strong>${s.count}</strong></span>`
-        ).join('');
-        $('aggStrip').innerHTML = `
-          <span class="agg-group-label">Severity:</span>${sevPills}
-          <span class="agg-group-label" style="margin-left:10px;">Status:</span>${statusPills}
-        `;
-      }
-
-      if (!allReports.length) {
-        $('reportsGrid').innerHTML = '<div class="empty-state" style="grid-column:1/-1;">No maintenance reports found in MongoDB.</div>';
-        return;
-      }
-
-      $('reportsGrid').innerHTML = allReports.slice(0, 12).map((rep) => {
-        const title = rep.resource_name || rep.equipment_name || `Resource #${rep.resource_id}`;
-        const techName = typeof rep.technician === 'string'
-          ? rep.technician
-          : (rep.technician?.name || 'Unassigned');
-        const dateRaw = rep.created_at || rep.inspection_date;
-        const dateStr = dateRaw ? new Date(dateRaw).toLocaleDateString() : '—';
-
-        const telemetryObj = rep.telemetry || rep.sensor_telemetry || {};
-        const telemetryEntries = Object.entries(telemetryObj).slice(0, 4);
-        const telemetryHtml = telemetryEntries.length
-          ? `<div class="telemetry-tags">${telemetryEntries.map(([k, v]) =>
-              `<span class="t-tag">${esc(k)}: <b>${esc(v)}</b></span>`
-            ).join('')}</div>`
-          : '';
-
-        const checklist = Array.isArray(rep.checklist) ? rep.checklist.slice(0, 3) : [];
-        const checklistHtml = checklist.length
-          ? `<div class="checklist-box">${checklist.map((item) => {
-              const passed = item.passed !== false;
-              const label = item.check_item || item.item || String(item);
-              return `<div class="chk-row"><span class="chk-icon ${passed ? 'pass' : 'fail'}">${passed ? '✓' : '✕'}</span><span>${esc(label)}</span></div>`;
-            }).join('')}</div>`
-          : '';
-
-        return `
-          <article class="report-card">
-            <div class="report-head">
-              <div>
-                <div class="mono" style="color:var(--muted);">${esc(rep.report_id || 'REPORT')} ${rep.resource_code ? `· ${esc(rep.resource_code)}` : ''}</div>
-                <div class="report-title">${esc(title)}</div>
-              </div>
-              <div style="display:flex; gap:4px; flex-wrap:wrap; justify-content:flex-end;">
-                ${renderSeverityBadge(rep.severity)}
-                ${renderReportStatusBadge(rep.status)}
-              </div>
-            </div>
-            ${rep.issue_summary ? `<div class="report-summary">${esc(rep.issue_summary)}</div>` : (rep.category ? `<div class="report-summary">${esc(rep.category)}</div>` : '')}
-            ${telemetryHtml}
-            ${checklistHtml}
-            <div class="report-foot">
-              <span>Tech: <strong>${esc(techName)}</strong></span>
-              <span>${esc(dateStr)}${rep.total_cost_usd ? ` · $${Number(rep.total_cost_usd).toFixed(0)}` : ''}</span>
-            </div>
-          </article>
-        `;
-      }).join('');
-    }
-
-    async function loadMaintenanceReports() {
-      try {
-        const res = await fetch(`${API_BASE}/maintenance-reports`);
-        const data = await res.json();
-        if (!res.ok || !data.success) {
-          throw new Error(data.error || `HTTP ${res.status}`);
-        }
-        allReports = Array.isArray(data.reports) ? data.reports : [];
-        reportBreakdown = data.breakdown || { by_severity: [], by_status: [] };
-        setApiPill('mongoStatus', 'mongoStatusText', 'online', `MongoDB Online · ${allReports.length} Docs`);
-        renderReportsPanel();
-        updateKPIs();
-      } catch (err) {
-        setApiPill('mongoStatus', 'mongoStatusText', 'warn', 'MongoDB Offline (Fallback)');
-        $('aggStrip').innerHTML = '<span class="agg-group-label">Aggregation Breakdown:</span><span class="res-meta">Unavailable while MongoDB is offline.</span>';
-        $('reportsGrid').innerHTML = `<div class="empty-state" style="grid-column:1/-1;">MongoDB maintenance reports unavailable (${esc(err.message)}). MySQL booking features remain active.</div>`;
-      }
-    }
-
     // Booking submission
     function toSqlDateTime(dtLocal) {
       if (!dtLocal) return '';
@@ -1569,108 +1167,10 @@ Thermal interface inspection
       }
     });
 
-    // Modal handlers for MongoDB Maintenance Report
-    function openReportModal() {
-      showBanner('reportModalAlert', '', '');
-      if (selectedResourceId && $('reportResourceSelect').querySelector(`option[value="${selectedResourceId}"]`)) {
-        $('reportResourceSelect').value = String(selectedResourceId);
-      }
-      $('reportModalBackdrop').classList.add('open');
-      $('reportIssue').focus();
-    }
-
-    function closeReportModal() {
-      $('reportModalBackdrop').classList.remove('open');
-    }
-
-    $('reportForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = $('submitReportBtn');
-      const resourceId = Number($('reportResourceSelect').value);
-      const resObj = allResources.find((r) => Number(r.resource_id) === resourceId);
-
-      let telemetry = {};
-      const rawTelemetry = $('reportTelemetry').value.trim();
-      if (rawTelemetry) {
-        try {
-          telemetry = JSON.parse(rawTelemetry);
-          if (!telemetry || typeof telemetry !== 'object' || Array.isArray(telemetry)) {
-            throw new Error('Telemetry must be a JSON object.');
-          }
-        } catch (parseErr) {
-          showBanner('reportModalAlert', 'bad', `Invalid Telemetry JSON: ${parseErr.message}`);
-          return;
-        }
-      }
-
-      const checklist = $('reportChecklist').value
-        .split('\n')
-        .map((line) => line.trim())
-        .filter(Boolean)
-        .map((line) => {
-          const failed = line.startsWith('!');
-          return {
-            check_item: failed ? line.slice(1).trim() : line,
-            passed: !failed
-          };
-        });
-
-      const payload = {
-        resource_id: resourceId,
-        resource_code: resObj?.resource_code || '',
-        resource_name: resObj?.resource_name || `Resource #${resourceId}`,
-        category: resObj?.resource_type || 'Campus Equipment',
-        issue_summary: $('reportIssue').value.trim(),
-        severity: $('reportSeverity').value,
-        status: $('reportStatus').value,
-        technician: { name: $('reportTechnician').value.trim() },
-        telemetry,
-        checklist
-      };
-
-      btn.disabled = true;
-      try {
-        const res = await fetch(`${API_BASE}/maintenance-reports`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const result = await res.json();
-        if (!res.ok || !result.success) {
-          throw new Error(result.error || `HTTP ${res.status}`);
-        }
-
-        closeReportModal();
-        const msg = `MongoDB report ${result.report_id} logged for ${payload.resource_name}.`;
-        showBanner('reportsAlert', 'ok', msg);
-        pushLog({
-          tone: 'info',
-          label: 'MongoDB Report',
-          summary: `${result.report_id} · ${payload.severity}`,
-          detail: `${payload.resource_name} — ${payload.issue_summary}`
-        });
-        $('reportIssue').value = '';
-        await loadMaintenanceReports();
-      } catch (err) {
-        showBanner('reportModalAlert', 'bad', `Unable to save report: ${err.message}`);
-      } finally {
-        btn.disabled = false;
-      }
-    });
-
     // Event wiring
     $('searchBtn').addEventListener('click', loadResources);
     $('refreshBtn').addEventListener('click', loadResources);
     $('refreshBookingsBtn').addEventListener('click', loadBookings);
-    $('refreshReportsBtn').addEventListener('click', loadMaintenanceReports);
-
-    $('openReportModalBtn').addEventListener('click', openReportModal);
-    $('closeReportModalBtn').addEventListener('click', closeReportModal);
-    $('cancelReportModalBtn').addEventListener('click', closeReportModal);
-    $('reportModalBackdrop').addEventListener('click', (e) => {
-      if (e.target === $('reportModalBackdrop')) closeReportModal();
-    });
-
     $('bookingsBody').addEventListener('click', (e) => {
       const btn = e.target.closest('button[data-cancel-id]');
       if (btn && !btn.disabled) cancelBooking(btn.dataset.cancelId, btn);
@@ -1722,7 +1222,7 @@ Thermal interface inspection
     })();
 
     // Initial parallel fetch
-    Promise.all([loadResources(), loadBookings(), loadMaintenanceReports()]);
+    Promise.all([loadResources(), loadBookings()]);
   </script>
 </body>
 </html>
