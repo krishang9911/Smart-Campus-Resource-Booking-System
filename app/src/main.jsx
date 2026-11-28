@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles.css';
 
-const apiRoot = '/api';
+const apiRoot = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/+$/, '');
 const statusNames = { confirmed: 'Approved', approved: 'Approved', pending: 'Pending', rejected: 'Rejected', cancelled: 'Cancelled', completed: 'Completed' };
 
 function initials(name = '') {
