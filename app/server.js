@@ -21,6 +21,7 @@ const pool = mysql.createPool({
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME || 'smart_campus_db',
+  ...(process.env.DB_SSL === 'true' ? { ssl: {} } : {}),
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
@@ -510,6 +511,41 @@ app.delete('/api/bookings/:id', authenticate, async (req, res) => {
       "UPDATE BOOKING SET status = 'cancelled' WHERE booking_id = ?",
       [bookingId]
     );
+
+    // Full MySQL installs the cancellation trigger from 03_triggers_and_rbac.sql.
+    // Some free managed MySQL tiers do not allow triggers, so write the same
+    // records here when the trigger has not already created them.
+    const [cancellations] = await connection.execute(
+      'SELECT cancellation_id FROM CANCELLATION WHERE booking_id = ? LIMIT 1',
+      [bookingId]
+    );
+    if (!cancellations.length) {
+      await connection.execute(
+        'INSERT INTO CANCELLATION (booking_id, cancelled_by, reason) VALUES (?, ?, ?)',
+        [bookingId, req.user.user_id, 'Cancelled through the booking dashboard']
+      );
+    }
+
+    const [cancellationAudits] = await connection.execute(
+      "SELECT audit_id FROM AUDIT_LOG WHERE booking_id = ? AND action = 'cancelled' AND new_status = 'cancelled' LIMIT 1",
+      [bookingId]
+    );
+    if (!cancellationAudits.length) {
+      await connection.execute(
+        `INSERT INTO AUDIT_LOG
+          (booking_id, changed_by, action, old_status, new_status, change_details, ip_address, user_agent)
+         VALUES (?, ?, 'cancelled', ?, 'cancelled', ?, ?, ?)`,
+        [
+          bookingId,
+          req.user.user_id,
+          bookings[0].status,
+          JSON.stringify({ source: 'booking_dashboard' }),
+          req.ip || null,
+          String(req.get('user-agent') || '').slice(0, 255) || null
+        ]
+      );
+    }
+
     await connection.query('COMMIT');
     transactionStarted = false;
 

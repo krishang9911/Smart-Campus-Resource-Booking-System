@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: smart-campus-resource-booking
+    runtime: node
+    plan: free
+    rootDir: app
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: node server.js
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_SSL
+        value: "true"
+      - key: MONGO_URI
+        sync: false
+      - key: MONGO_DB
+        value: smart_campus_nosql
